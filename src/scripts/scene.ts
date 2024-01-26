@@ -1,17 +1,24 @@
 import { uuid } from "./util";
 
 export class DialogueButton {
-
+	text: string
 }
 
 export class Scene {
+	uuid: string
+	id: string
+	npc_name: string
+	text: string
+	buttons: DialogueButton[]
+
 	constructor() {
 		this.uuid = uuid();
-		this.id = '';
-		this.npc_name = '';
-		this.text = '';
+		this.id = 'scene';
+		this.npc_name = 'NPC';
+		this.text = 'Sample Text';
 
-		this.buttons = [];
+		this.buttons = [
+		];
 
 		Scene.all.push(this);
 	}
@@ -21,5 +28,5 @@ export class Scene {
 			Scene.all.splice(index, 1);
 		}
 	}
-	static all = [];
+	static all: Scene[] = [];
 }
