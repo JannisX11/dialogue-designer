@@ -1,12 +1,6 @@
 <template>
-	<div>
+	<div id="scene_editor">
 		<div id="editor_bar_top">
-			<div class="preview_mode_controls" @click="togglePreviewMode()">
-				Preview
-				<ToggleLeft :size="30" v-if="preview_mode" />
-				<ToggleRight :size="30" v-else />
-				Edit
-			</div>
 
 		</div>
 		<div id="dialogue">
@@ -30,13 +24,33 @@
 					<textarea v-if="!preview_mode" v-model="button.text" spellcheck="false" />
 					<minecraft-formatting-preview v-else :text="button.text" />
 				</div>
+				<div class="button_add_tool" v-if="scene.buttons.length < 3" @click="scene.addButton()">
+					<Plus :size="28" />
+				</div>
 			</div>
 		</div>
+		<div id="editor_bar_bottom">
+			<div class="preview_mode_controls" @click="togglePreviewMode()">
+				Preview
+				<ToggleLeft :size="30" v-if="preview_mode" />
+				<ToggleRight :size="30" v-else />
+				Edit
+			</div>
+		</div>
+	</div>
+
+	<div id="properties">
+		<h3>Dialogue</h3>
+		<h3>Commands</h3>
+		
+		<li class="command_bar" v-for="command in scene.on_open_commands" :key="command">
+			
+		</li>
 	</div>
 </template>
 
 <script>
-import { ToggleLeft, ToggleRight, User } from 'lucide-vue-next'
+import { ToggleLeft, ToggleRight, User, Plus } from 'lucide-vue-next'
 import { Scene } from './../scripts/scene'
 
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
@@ -46,7 +60,8 @@ export default {
 		MinecraftFormattingPreview,
 		ToggleLeft,
 		ToggleRight,
-		User
+		User,
+		Plus
 	},
 	props: {
 		scene: Scene,
@@ -66,9 +81,21 @@ export default {
 
 <style scoped>
 
+#scene_editor {
+	position: relative;
+	flex-grow: 1;
+}
 #editor_bar_top {
 	display: flex;
 	justify-content: center;
+}
+#editor_bar_bottom {
+	display: flex;
+	justify-content: center;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 .preview_mode_controls {
 	display: flex;
@@ -77,9 +104,6 @@ export default {
 	cursor: pointer;
 	width: fit-content;
 	align-items: center;
-}
-.preview_mode_controls > svg {
-	
 }
 
 #dialogue {
@@ -151,9 +175,10 @@ export default {
 }
 .dialogue_buttons {
 	display: flex;
-	gap: 5px;
+	gap: 15px;
 	padding: 15px 2px;
 	padding-bottom: 8px;
+	min-height: 63px;
 }
 
 .dialogue_button {
@@ -162,12 +187,16 @@ export default {
 	border: 3px solid var(--color-mcui-highlight);
 	border-bottom-color: var(--color-mcui-shadow);
 	border-right-color: var(--color-mcui-shadow);
-	outline: 3px solid black;
+	outline: 2px solid black;
 	color: var(--color-mcui-text-button);
 	height: 40px;
 	min-width: 240px;
 	padding: 2px;
 	text-align: center;
+	cursor: pointer;
+}
+.button_add_tool {
+	padding-top: 4px;
 	cursor: pointer;
 }
 textarea,
@@ -179,6 +208,11 @@ input[type=text] {
 	width: 100%;
 	height: 100%;
 	resize: none;
+}
+
+#properties {
+	min-height: 120px;
+	border-top: 1px solid var(--color-border);
 }
 
 </style>

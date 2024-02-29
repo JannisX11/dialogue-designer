@@ -64,3 +64,23 @@ body {
   font-weight: bold;
   font-style: italic;
 }
+
+
+
+input, select {
+	font-size: inherit;
+	font-weight: inherit;
+	background-color: var(--color-dark);
+	border: 1px solid var(--color-border);
+	color: var(--color-text);
+	outline: none;
+	height: 30px;
+	padding: 4px 1px;
+	flex-grow: 1;
+}
+input[type=text], input[type=number], input:not([type]) {
+	font-family: var(--font-code);
+}
+input:active, select:active {
+	outline-color: 1px solid #3c6a89;
+}

@@ -3,11 +3,26 @@ import SceneEditor from './components/SceneEditor.vue'
 </script>
 
 <template>
-	<div id="wrapper">
+	<div id="wrapper" :mobile_page="mobile_page">
 		<header>
-			<h1>DIALOGUE DESIGNER</h1>
+			<h1>DialogueDesigner</h1>
+			<div class="tool" @click="importFile()">
+				<FolderOpen :size="22" />
+				Import
+			</div>
+			<div class="tool" @click="saveFile()">
+				<Save :size="22" />
+				Save
+			</div>
 		</header>
 		<div id="sidebar">
+			<h3>Project</h3>
+			<div class="form_bar">
+				<label>Prefix</label>
+				<input type="text" v-model="Project.namespace">
+			</div>
+
+			<h3>Scenes</h3>
 			<ul>
 				<div class="tool" @click="addScene()">
 					<Plus :size="22" />
@@ -28,8 +43,16 @@ import SceneEditor from './components/SceneEditor.vue'
 
 		</div>
 		<main>
-			<SceneEditor v-if="selected_scene" id="scene_editor" :scene="selected_scene"></SceneEditor>
+			<SceneEditor v-if="selected_scene" :scene="selected_scene"></SceneEditor>
 		</main>
+		<nav id="mobile_nav">
+			<div @click="mobile_page = 'sidebar'">
+				<List />
+			</div>
+			<div @click="mobile_page = 'editor'">
+				<MessageSquareCode />
+			</div>
+		</nav>
 	</div>
 </template>
 
@@ -37,7 +60,10 @@ import SceneEditor from './components/SceneEditor.vue'
 <script>
 
 import { Scene } from './scripts/scene';
-import { Plus, MessageSquare } from 'lucide-vue-next'
+import { Project } from './scripts/project'
+import { Plus, MessageSquare, Save, FolderOpen, List, MessageSquareCode } from 'lucide-vue-next'
+import { selectFileToImport } from './scripts/import'
+import { exportDialogueFile } from './scripts/export'
 
 
 export default {
@@ -47,11 +73,20 @@ export default {
 	data() {
 		return {
 			scenes: Scene.all,
+			project: Project,
 			selected_scene: null,
-			renaming_scene: false
+			renaming_scene: false,
+			mobile_page: 'sidebar'
 		}
 	},
 	methods: {
+		importFile() {
+			selectFileToImport();
+		},
+		saveFile() {
+			exportDialogueFile();
+		},
+		
 		addScene() {
 			let scene = new Scene();
 			this.selectScene(scene);
@@ -80,6 +115,8 @@ export default {
 header {
 	grid-area: header;
 	border-bottom: 1px solid var(--color-border);
+	display: flex;
+	align-items: center;
 }
 h1 {
 	font-size: 22px;
@@ -92,17 +129,66 @@ h1 {
 }
 main {
 	grid-area: editor;
+	display: flex;
+	flex-direction: column;
+}
+nav#mobile_nav {
+	grid-area: mobile_nav;
+	display: none;
+}
+@media only screen and (max-width: 800px) {
+	#wrapper {
+		height: 100%;
+		display: grid;
+		grid-template-rows: 40px auto 44px;
+		grid-template-columns: auto;
+	}
+	#wrapper[mobile_page="sidebar"] {
+		grid-template-areas: 
+			"header"
+			"sidebar"
+			"mobile_nav";
+	}
+	#wrapper:not([mobile_page="sidebar"]) #sidebar {
+		display: none;
+	}
+	#wrapper[mobile_page="editor"] {
+		grid-template-areas: 
+			"header"
+			"editor"
+			"mobile_nav";
+	}
+	#wrapper:not([mobile_page="editor"]) #main {
+		display: none;
+	}
+	nav#mobile_nav {
+		display: flex;
+	}
 }
 
+
+.form_bar {
+	padding: 2px 8px;
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
 .tool {
 	display: flex;
 	cursor: pointer;
 	height: 30px;
 	align-items: center;
 	padding: 2px;
+	gap: 5px;
 }
 .tool:hover {
 	color: var(--color-highlight);
+}
+h3 {
+	color: var(--color-subtle);
+	margin-top: 20px;
+	padding: 5px;
+	user-select: none;
 }
 .scene {
 	height: 36px;
