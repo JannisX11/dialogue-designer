@@ -92,10 +92,10 @@ export function importDialogueFile(json: object): void {
 	console.log(scenes.length, Project.prefix)
 
 
+	let i = 0;
 	for (let scene_json of scenes) {
 
 		let scene = new Scene();
-		console.log(scene)
 		scene.id = scene_json.scene_tag.replace(Project.prefix, '');
 		scene.npc_name = getText(scene_json.npc_name);
 		scene.text = getText(scene_json.text);
@@ -114,5 +114,9 @@ export function importDialogueFile(json: object): void {
 		if (scene_json.on_close_commands instanceof Array) {
 			scene.on_close_commands.push(...scene_json.on_close_commands);
 		}
+		if (i == 0) {
+			scene.select();
+		}
+		i++;
 	}
 }

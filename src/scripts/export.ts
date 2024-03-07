@@ -1,5 +1,6 @@
 import { Scene } from "./scene";
 import { Project } from "./project";
+import { IO, compileJSON } from "./util";
 
 function rawText(input: string): any {
 	return {
@@ -7,7 +8,7 @@ function rawText(input: string): any {
 	}
 }
 
-export function exportDialogueFile(scenes: Scene[] = Scene.all): Object {
+export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 	let json_scenes: any[] = [];
 	let file = {
 		format_version: '1.14.0',
@@ -38,4 +39,13 @@ export function exportDialogueFile(scenes: Scene[] = Scene.all): Object {
 		json_scenes.push(scene_json);
 	}
 	return file;
+}
+
+export function exportDialogueFile(): void {
+	let file = compileDialogueFile();
+	let content = compileJSON(file);
+	IO.export({
+		name: (Project.name||'unknown') + '.dialogue.json',
+		content,
+	})
 }

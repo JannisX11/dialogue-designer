@@ -75,7 +75,7 @@ input, select {
 	color: var(--color-text);
 	outline: none;
 	height: 30px;
-	padding: 4px 1px;
+	padding: 2px 4px;
 	flex-grow: 1;
 }
 input[type=text], input[type=number], input:not([type]) {

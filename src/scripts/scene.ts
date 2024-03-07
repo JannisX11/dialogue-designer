@@ -43,5 +43,7 @@ export class Scene {
 			Scene.all.splice(index, 1);
 		}
 	}
+	select(): void {}
 	static all: Scene[] = [];
 }
+window.Scene = Scene

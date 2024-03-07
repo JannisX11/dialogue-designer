@@ -18,6 +18,10 @@ import SceneEditor from './components/SceneEditor.vue'
 		<div id="sidebar">
 			<h3>Project</h3>
 			<div class="form_bar">
+				<label>File Name</label>
+				<input type="text" v-model="Project.name">
+			</div>
+			<div class="form_bar">
 				<label>Prefix</label>
 				<input type="text" v-model="Project.namespace">
 			</div>
@@ -62,9 +66,11 @@ import SceneEditor from './components/SceneEditor.vue'
 import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
 import { Plus, MessageSquare, Save, FolderOpen, List, MessageSquareCode } from 'lucide-vue-next'
+import {reactive} from 'vue'
 import { selectFileToImport } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
 
+Scene.all = reactive(Scene.all);
 
 export default {
 	components: {
@@ -86,7 +92,6 @@ export default {
 		saveFile() {
 			exportDialogueFile();
 		},
-		
 		addScene() {
 			let scene = new Scene();
 			this.selectScene(scene);
@@ -97,6 +102,13 @@ export default {
 		},
 		renameScene(scene) {
 			this.renaming_scene = true;
+		}
+	},
+	mounted() {
+		let vue_scope = this;
+		Scene.prototype.select = function() {
+			console.log(this)
+			vue_scope.selectScene(this);
 		}
 	}
 }
