@@ -8,6 +8,12 @@ function rawText(input: string): any {
 	}
 }
 
+function processCommands(input: string) {
+	let list = input.split(/\r?\n/);
+	list = list.filter(line => line.length);
+	return list.length ? list : undefined;
+}
+
 export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 	let json_scenes: any[] = [];
 	let file = {
@@ -24,17 +30,18 @@ export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 		};
 		if (scene.buttons.length) {
 			scene_json.buttons = scene.buttons.map(button => {
+				let commands = button.commands.split(/\r?\n/)
 				return {
 					name: rawText(button.text),
-					commands: button.commands.length ? button.commands : undefined,
+					commands: processCommands(button.commands),
 				}
 			});
 		}
 		if (scene.on_open_commands.length) {
-			scene_json.on_open_commands = scene.on_open_commands.slice();
+			scene_json.on_open_commands = processCommands(scene.on_open_commands);
 		}
 		if (scene.on_close_commands.length) {
-			scene_json.on_close_commands = scene.on_close_commands.slice();
+			scene_json.on_close_commands = processCommands(scene.on_close_commands);
 		}
 		json_scenes.push(scene_json);
 	}

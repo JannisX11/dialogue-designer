@@ -1,6 +1,7 @@
 
 :root {
 	--color-background: #272d32;
+	--color-editor: #1d2226;
 	--color-hover: #3e474f;
 	--color-border: #4c5863;
 	--color-text: #c2c8cd;
@@ -21,6 +22,9 @@
 	box-sizing: border-box;
 	margin: 0;
 	font-weight: normal;
+}
+* {
+	scrollbar-color: var(--color-hover) transparent;
 }
 ul {
   padding: 0;
@@ -70,7 +74,7 @@ body {
 input, select {
 	font-size: inherit;
 	font-weight: inherit;
-	background-color: var(--color-dark);
+	background-color: var(--color-editor);
 	border: 1px solid var(--color-border);
 	color: var(--color-text);
 	outline: none;
@@ -83,4 +87,26 @@ input[type=text], input[type=number], input:not([type]) {
 }
 input:active, select:active {
 	outline-color: 1px solid #3c6a89;
+}
+
+h3 {
+	user-select: none;
+	color: var(--color-subtle);
+    font-size: 1.3em;
+}
+
+/* Code Mirror */
+.ͼ1 {
+	background-color: var(--color-editor);
+}
+.ͼ1 .cm-gutters {
+	background-color: var(--color-background);
+	color: var(--color-subtle);
+	border-right: 1px solid var(--color-border);
+}
+.ͼ2 .cm-activeLineGutter {
+	background-color: var(--color-hover);
+}
+.ͼ2 .cm-activeLine {
+	background-color: #a6e1ff12;
 }

@@ -1,16 +1,19 @@
+import { compileJSON } from "./util"
 
 type TextComponent = string | {}
+type TextFieldMode = 'text' | 'translate' | 'json';
 
-class TextField {
-	mode: 'text' | 'translate' | 'raw'
+export class TextField {
+	mode: TextFieldMode
 	text: string
 	translate_key: string
-	data: TextComponent
+	json: string
 
-	constructor() {
+	constructor(start_text = '') {
 		this.mode = 'text';
-		this.text = '';
+		this.text = start_text;
 		this.translate_key = '';
+		this.json = '';
 	}
 	set(data) {
 		if (typeof data == 'string') {
@@ -18,15 +21,18 @@ class TextField {
 			this.text = data;
 
 		} else if (typeof data == 'object') {
-			this.mode = 'raw';
-			this.data = data;
+			this.mode = 'json';
+			this.json = compileJSON(data);
 		}
 	}
 	export() {
 		if (this.mode == 'text') {
 			return this.text;
 		} else {
-			return this.data;
+			return JSON.parse(this.json);
 		}
+	}
+	switchMode(mode: TextFieldMode) {
+		this.mode = mode;
 	}
 }

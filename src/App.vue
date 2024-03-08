@@ -1,5 +1,6 @@
 <script setup>
 import SceneEditor from './components/SceneEditor.vue'
+import LocalizationEditor from './components/LocalizationEditor.vue'
 </script>
 
 <template>
@@ -33,7 +34,7 @@ import SceneEditor from './components/SceneEditor.vue'
 					Add Scene
 				</div>
 			</ul>
-			<ul>
+			<ul style="flex-grow: 1;">
 				<li v-for="scene in scenes" :key="scene.uuid"
 					class="scene"
 					:class="{selected: scene == selected_scene, a: true}" 
@@ -45,8 +46,11 @@ import SceneEditor from './components/SceneEditor.vue'
 				</li>
 			</ul>
 
+			<h3>Localization</h3>
+			<p @click="">EN-US</p>
 		</div>
 		<main>
+			<LocalizationEditor v-if="main_tab == 'localization'" ></LocalizationEditor>
 			<SceneEditor v-if="selected_scene" :scene="selected_scene"></SceneEditor>
 		</main>
 		<nav id="mobile_nav">
@@ -82,6 +86,9 @@ export default {
 			project: Project,
 			selected_scene: null,
 			renaming_scene: false,
+			main_tab: 'scene',
+			languages: Project.languages,
+			selected_language: '',
 			mobile_page: 'sidebar'
 		}
 	},
@@ -138,6 +145,8 @@ h1 {
 #sidebar {
 	grid-area: sidebar;
 	border-right: 1px solid var(--color-border);
+	display: flex;
+	flex-direction: column;
 }
 main {
 	grid-area: editor;

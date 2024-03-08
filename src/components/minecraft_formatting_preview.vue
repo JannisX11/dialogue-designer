@@ -8,14 +8,24 @@ function isAllASCII(string) {
 }
 
 import {h} from 'vue'
+import { TextField } from '../scripts/text_field';
 
 export default {
 	name: 'minecraft-formatting-preview',
 	props: {
-		text: String
+		text_field: TextField
 	},
 	data() {return {
 	}},
+	computed: {
+		text() {
+			if (this.text_field.mode == 'text') {
+				return this.text_field.text;
+			} else {
+				return '';
+			}
+		}
+	},
 	render() {
 		let list = [];
 
@@ -166,4 +176,4 @@ export default {
 		color: #DDD605;
 	}
 	
-</style>
+</style>import { TextField } from '../scripts/text_field';

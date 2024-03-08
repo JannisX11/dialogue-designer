@@ -4,25 +4,32 @@
 
 		</div>
 		<div id="dialogue">
-			<div class="dialogue_title">
-				<input type="text" v-if="!preview_mode" v-model="scene.npc_name" spellcheck="false" />
-				<minecraft-formatting-preview v-else :text="scene.npc_name" />
+			<div class="dialogue_title text_field">
+				<template v-if="!preview_mode">
+					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
+					<div class="text_field_switcher">
+						<Baseline :size="19" @click="scene.npc_name.switchMode('text')" :class="{highlighted: scene.npc_name.mode == 'text'}" />
+						<Globe :size="19" @click="scene.npc_name.switchMode('translation')" :class="{highlighted: scene.npc_name.mode == 'translation'}" />
+						<Braces :size="19" @click="scene.npc_name.switchMode('json')" :class="{highlighted: scene.npc_name.mode == 'json'}" />
+					</div>
+				</template>
+				<minecraft-formatting-preview v-else :text_field="scene.npc_name" />
 			</div>
 			<div class="dialogue_main_row">
-				<div class="portrait_dummy">
+				<div class="portrait_dummy" @click="editInPopup('text')">
 					<User />
 				</div>
-				<div class="dialogue_content">
-					<textarea v-if="!preview_mode" v-model="scene.text" spellcheck="false" />
-					<minecraft-formatting-preview v-else :text="scene.text" />
+				<div class="dialogue_content text_field">
+					<textarea v-if="!preview_mode" v-model="scene.text.text" spellcheck="false" />
+					<minecraft-formatting-preview v-else :text_field="scene.text" />
 				</div>
 			</div>
 			<div class="dialogue_buttons">
-				<div class="dialogue_button"
+				<div class="dialogue_button text_field"
 					v-for="button in scene.buttons" :key="button.uuid"
 				>
-					<textarea v-if="!preview_mode" v-model="button.text" spellcheck="false" />
-					<minecraft-formatting-preview v-else :text="button.text" />
+					<textarea v-if="!preview_mode" v-model="button.text.text" spellcheck="false" />
+					<minecraft-formatting-preview v-else :text_field="button.text" />
 				</div>
 				<div class="button_add_tool" v-if="scene.buttons.length < 3" @click="scene.addButton()">
 					<Plus :size="28" />
@@ -37,49 +44,220 @@
 				Edit
 			</div>
 		</div>
+
+		<dialog id="editor_popup" ref="editor_popup">
+			<div class="editor_popup_bar">
+				<X :size="20" @click="closePopup()" />
+			</div>
+			<codemirror
+				v-model="popup_value"
+				placeholder="{}"
+				:style="{  }"
+				
+				:indent-with-tab="true"
+				:tab-size="2"
+				:extensions="codemirror_extensions"
+				@ready="handleReady"
+				@change="changePopupValue($event)"
+			/>
+		</dialog>
 	</div>
 
 	<div id="properties">
-		<h3>Dialogue</h3>
 		<h3>Commands</h3>
+		<div id="command_tab_bar">
+			<div class="command_tab" @click="switchCommandTab('on_open')" :class="{open: command_tab == 'on_open'}">On Open</div>
+			<div class="command_tab" @click="switchCommandTab('on_close')" :class="{open: command_tab == 'on_close'}">On Close</div>
+			<div class="command_tab" @click="switchCommandTab('button1')" :class="{open: command_tab == 'button1'}" v-if="scene.buttons[0]">Button 1</div>
+			<div class="command_tab" @click="switchCommandTab('button2')" :class="{open: command_tab == 'button2'}" v-if="scene.buttons[1]">Button 2</div>
+			<div class="command_tab" @click="switchCommandTab('button3')" :class="{open: command_tab == 'button3'}" v-if="scene.buttons[2]">Button 3</div>
+		</div>
 		
-		<li class="command_bar" v-for="command in scene.on_open_commands" :key="command">
+		<codemirror
+			v-model="command_value"
+			placeholder="/say hello world!"
+			:style="{  }"
 			
-		</li>
+			:indent-with-tab="true"
+			:tab-size="2"
+			:extensions="codemirror_extensions_command"
+			@ready="commandEditorReady"
+			@change="changeCommand($event)"
+		/>
 	</div>
 </template>
 
 <script>
-import { ToggleLeft, ToggleRight, User, Plus } from 'lucide-vue-next'
-import { Scene } from './../scripts/scene'
-
+import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X } from 'lucide-vue-next'
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
+import { Scene } from './../scripts/scene'
+import { lineNumbers } from '@codemirror/view'
+import Codemirror from 'vue-codemirror6'
+import { json } from '@codemirror/lang-json'
+import { oneDark } from '@codemirror/theme-one-dark'
+//import {Language} from '@codemirror/language'
+import {autocompletion} from "@codemirror/autocomplete"
+
+let editors = {};
 
 export default {
 	components: {
+		Codemirror,
 		MinecraftFormattingPreview,
 		ToggleLeft,
 		ToggleRight,
 		User,
-		Plus
+		Plus,
+		Baseline,
+		Globe,
+		Braces,
+		X
 	},
 	props: {
 		scene: Scene,
 	},
 	data() {
 		return {
+			oneDark,
+			codemirror_extensions_command: [
+				oneDark,
+				autocompletion({
+					override: [function(context) {
+						let word = context.matchBefore(/\w*/)
+						console.log(word, context)
+						/*if (word.from == word.to && !context.explicit)
+							return null*/
+						return {
+							from: word.from,
+							options: [
+								{label: 'test', info: 'Hey'},
+								{label: 'test2', info: 'Hey'}
+							]
+						}
+					}],
+
+				}),
+				lineNumbers()
+			],
+			codemirror_extensions: [oneDark, json(), lineNumbers()],
 			preview_mode: true,
+			command_tab: 'on_open',
+			popup_edit_key: '',
+			popup_error: '',
+			popup_value: '',
+			command_value: '',
 		}
+	},
+	watch: {
+		scene(scene) {
+			if (this.command_tab == 'button1' && !scene.buttons[0]) this.command_tab = 'on_open';
+			if (this.command_tab == 'button2' && !scene.buttons[1]) this.command_tab = 'on_open';
+			if (this.command_tab == 'button3' && !scene.buttons[2]) this.command_tab = 'on_open';
+		}
+	},
+	computed: {
 	},
 	methods: {
 		togglePreviewMode() {
 			this.preview_mode = !this.preview_mode;
+		},
+		switchCommandTab(tab) {
+			this.command_tab = tab;
+			editors.commands.state.selection.mainIndex = 0;
+			editors.commands.state.selection.ranges[0].from = 0;
+			editors.commands.state.selection.ranges[0].to = 0;
+			switch (this.command_tab) {
+				case 'on_open': this.command_value = this.scene.on_open_commands; break;
+				case 'on_close': this.command_value = this.scene.on_close_commands; break;
+				case 'button1': this.command_value = this.scene.buttons[0]?.commands; break;
+				case 'button2': this.command_value = this.scene.buttons[1]?.commands; break;
+				case 'button3': this.command_value = this.scene.buttons[2]?.commands; break;
+			}
+			if (!this.command_value) this.command_value = '';
+			console.log([this.command_value, typeof this.command_value, tab])
+		},
+		editInPopup(key) {
+			this.popup_edit_key = key;
+			this.popup_value = this.getPopupEditorValue();
+			this.$refs.editor_popup.showModal();
+		},
+		closePopup() {
+			this.popup_error = '';
+			try {
+				JSON.parse(this.getPopupEditorValue());
+			} catch (err) {
+				console.log(err);
+				this.popup_error = err.toString();
+			}
+			if (!this.popup_error) {
+				this.$refs.editor_popup.close();
+			}
+		},
+		getPopupEditorValue() {
+			console.log(this.popup_edit_key, this.scene)
+			switch (this.popup_edit_key) {
+				case 'npc_name': return this.scene.npc_name.json;
+				case 'text': return this.scene.text.json;
+				case 'button1': return this.scene.buttons[0].text.json;
+				case 'button2': return this.scene.buttons[1].text.json;
+				case 'button3': return this.scene.buttons[2].text.json;
+			}
+		},
+		handleReady() {
+
+		},
+		commandEditorReady(editor) {
+			editors.commands = editor;
+		},
+		changeCommand(event) {
+			let value = this.command_value;
+			console.log(this.command_tab, value)
+			switch (this.command_tab) {
+				case 'on_open': this.scene.on_open_commands = value; break;
+				case 'on_close': this.scene.on_close_commands = value; break;
+				case 'button1': {let button = this.scene.buttons[0]; if (button) {button.commands = value;}} break;
+				case 'button2': {let button = this.scene.buttons[1]; if (button) {button.commands = value;}} break;
+				case 'button3': {let button = this.scene.buttons[2]; if (button) {button.commands = value;}} break;
+			}
+		},
+		changePopupValue(event) {
+			let value = this.popup_value;
+			switch (this.popup_edit_key) {
+				case 'npc_name': this.scene.npc_name.json = value; break;
+				case 'text': this.scene.text.json = value; break;
+				case 'button1': this.scene.text.json = value; break;
+				case 'button2': this.scene.text.json = value; break;
+				case 'button3': this.scene.text.json = value; break;
+			}
 		}
 	}
 }
 </script>
 
 <style scoped>
+.text_field_switcher {
+	position: absolute;
+	display: flex;
+	height: 30px;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background);
+	color: var(--color-text);
+	top: 0;
+	right: 0;
+	border-radius: 15px
+}
+.text_field_switcher > svg {
+	cursor: pointer;
+	padding: 4px 2px;
+	height: 100%;
+	width: 30px;
+}
+.text_field_switcher > svg:hover {
+	color: var(--color-highlight);
+}
+.text_field {
+	position: relative;
+}
 
 #scene_editor {
 	position: relative;
@@ -130,6 +308,9 @@ export default {
 	margin-top: 50px;
 	display: flex;
 	flex-direction: column;
+}
+#dialogue input {
+	color: var(--color-mcui-text);
 }
 
 .dialogue_title {
@@ -211,8 +392,59 @@ input[type=text] {
 }
 
 #properties {
-	min-height: 120px;
+	min-height: 140px;
 	border-top: 1px solid var(--color-border);
+	display: flex;
+    flex-direction: column;
+}
+#properties h3 {
+    padding: 2px 12px;
+}
+#properties .ͼ1 {
+	border: 1px solid red;
 }
 
+#command_tab_bar {
+	display: flex;
+	height: 32px;
+}
+.command_tab {
+	padding: 4px 12px;
+	cursor: pointer;
+}
+.command_tab:hover {
+	color: var(--color-highlight);
+}
+.command_tab.open {
+	background-color: var(--color-hover);
+	color: var(--color-highlight);
+}
+
+#editor_popup {
+	margin: auto;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background);
+	box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+	padding: 12px;
+	color: inherit;
+	border-radius: 4px;
+	width: 680px;
+	height: 500px;
+	max-width: 100vw;
+	max-height: 100vh;
+}
+
+</style>
+
+<style>
+#properties .ͼ1 {
+	flex-grow: 1;
+}
+#editor_popup .vue-codemirror {
+	height: calc(100% - 28px);
+	border: 1px solid var(--color-border);
+}
+#editor_popup .ͼ1 {
+	height: 100%;
+}
 </style>

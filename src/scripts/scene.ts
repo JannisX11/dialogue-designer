@@ -1,34 +1,35 @@
+import { TextField } from "./text_field";
 import { uuid } from "./util";
 
 export class DialogueButton {
-	text: string
-	commands: string[]
+	text: TextField
+	commands: string
 	constructor() {
-		this.text = 'Button';
-		this.commands = [];
+		this.text = new TextField('Button');
+		this.commands = '';
 	}
 }
 
 export class Scene {
 	uuid: string
 	id: string
-	npc_name: string
-	text: string
+	npc_name: TextField
+	text: TextField
 	buttons: DialogueButton[]
 
-	on_open_commands: string[]
-	on_close_commands: string[]
+	on_open_commands: string
+	on_close_commands: string
 
 	constructor() {
 		this.uuid = uuid();
 		this.id = 'scene';
-		this.npc_name = 'NPC';
-		this.text = 'Sample Text';
+		this.npc_name = new TextField('NPC');
+		this.text = new TextField('Sample Text');
 
 		this.buttons = [
 		];
-		this.on_open_commands = [];
-		this.on_close_commands = [];
+		this.on_open_commands = '';
+		this.on_close_commands = '';
 
 		Scene.all.push(this);
 	}

@@ -104,15 +104,15 @@ export function importDialogueFile(json: object): void {
 				let button = scene.addButton();
 				button.text = getText(button_json.name);
 				if (button_json.commands instanceof Array) {
-					button.commands.push(...button_json.commands);
+					button.commands = button_json.commands.join('\n');
 				}
 			}
 		}
 		if (scene_json.on_open_commands instanceof Array) {
-			scene.on_open_commands.push(...scene_json.on_open_commands);
+			scene.on_open_commands = scene_json.on_open_commands.join('\n');
 		}
 		if (scene_json.on_close_commands instanceof Array) {
-			scene.on_close_commands.push(...scene_json.on_close_commands);
+			scene.on_close_commands = scene_json.on_close_commands.join('\n');
 		}
 		if (i == 0) {
 			scene.select();
