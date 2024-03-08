@@ -8,9 +8,9 @@
 				<template v-if="!preview_mode">
 					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
 					<div class="text_field_switcher">
-						<Baseline :size="19" @click="scene.npc_name.switchMode('text')" :class="{highlighted: scene.npc_name.mode == 'text'}" />
-						<Globe :size="19" @click="scene.npc_name.switchMode('translation')" :class="{highlighted: scene.npc_name.mode == 'translation'}" />
-						<Braces :size="19" @click="scene.npc_name.switchMode('json')" :class="{highlighted: scene.npc_name.mode == 'json'}" />
+						<Baseline :size="19" @click="scene.npc_name.switchMode('text')" :class="{selected: scene.npc_name.mode == 'text'}" />
+						<Globe :size="19" @click="scene.npc_name.switchMode('translation')" :class="{selected: scene.npc_name.mode == 'translation'}" />
+						<Braces :size="19" @click="scene.npc_name.switchMode('json')" :class="{selected: scene.npc_name.mode == 'json'}" />
 					</div>
 				</template>
 				<minecraft-formatting-preview v-else :text_field="scene.npc_name" />
@@ -49,17 +49,11 @@
 			<div class="editor_popup_bar">
 				<X :size="20" @click="closePopup()" />
 			</div>
-			<codemirror
+			<textarea
 				v-model="popup_value"
-				placeholder="{}"
-				:style="{  }"
-				
-				:indent-with-tab="true"
-				:tab-size="2"
-				:extensions="codemirror_extensions"
-				@ready="handleReady"
-				@change="changePopupValue($event)"
+				@input="changePopupValue($event)"
 			/>
+			<p v-if="popup_error">{{ popup_error }}</p>
 		</dialog>
 	</div>
 
@@ -73,16 +67,10 @@
 			<div class="command_tab" @click="switchCommandTab('button3')" :class="{open: command_tab == 'button3'}" v-if="scene.buttons[2]">Button 3</div>
 		</div>
 		
-		<codemirror
+		<textarea
 			v-model="command_value"
 			placeholder="/say hello world!"
-			:style="{  }"
-			
-			:indent-with-tab="true"
-			:tab-size="2"
-			:extensions="codemirror_extensions_command"
-			@ready="commandEditorReady"
-			@change="changeCommand($event)"
+			@input="changeCommand($event)"
 		/>
 	</div>
 </template>
@@ -163,9 +151,9 @@ export default {
 		},
 		switchCommandTab(tab) {
 			this.command_tab = tab;
-			editors.commands.state.selection.mainIndex = 0;
-			editors.commands.state.selection.ranges[0].from = 0;
-			editors.commands.state.selection.ranges[0].to = 0;
+			//editors.commands.state.selection.mainIndex = 0;
+			//editors.commands.state.selection.ranges[0].from = 0;
+			//editors.commands.state.selection.ranges[0].to = 0;
 			switch (this.command_tab) {
 				case 'on_open': this.command_value = this.scene.on_open_commands; break;
 				case 'on_close': this.command_value = this.scene.on_close_commands; break;
@@ -174,7 +162,6 @@ export default {
 				case 'button3': this.command_value = this.scene.buttons[2]?.commands; break;
 			}
 			if (!this.command_value) this.command_value = '';
-			console.log([this.command_value, typeof this.command_value, tab])
 		},
 		editInPopup(key) {
 			this.popup_edit_key = key;
@@ -186,7 +173,6 @@ export default {
 			try {
 				JSON.parse(this.getPopupEditorValue());
 			} catch (err) {
-				console.log(err);
 				this.popup_error = err.toString();
 			}
 			if (!this.popup_error) {
@@ -194,7 +180,6 @@ export default {
 			}
 		},
 		getPopupEditorValue() {
-			console.log(this.popup_edit_key, this.scene)
 			switch (this.popup_edit_key) {
 				case 'npc_name': return this.scene.npc_name.json;
 				case 'text': return this.scene.text.json;
@@ -203,15 +188,8 @@ export default {
 				case 'button3': return this.scene.buttons[2].text.json;
 			}
 		},
-		handleReady() {
-
-		},
-		commandEditorReady(editor) {
-			editors.commands = editor;
-		},
 		changeCommand(event) {
 			let value = this.command_value;
-			console.log(this.command_tab, value)
 			switch (this.command_tab) {
 				case 'on_open': this.scene.on_open_commands = value; break;
 				case 'on_close': this.scene.on_close_commands = value; break;
@@ -244,13 +222,18 @@ export default {
 	color: var(--color-text);
 	top: 0;
 	right: 0;
-	border-radius: 15px
+	border-radius: 15px;
+	overflow: hidden;
 }
 .text_field_switcher > svg {
 	cursor: pointer;
 	padding: 4px 2px;
 	height: 100%;
 	width: 30px;
+}
+.text_field_switcher > svg.selected {
+	background-color: var(--color-hover);
+	color: var(--color-highlight);
 }
 .text_field_switcher > svg:hover {
 	color: var(--color-highlight);
@@ -392,7 +375,7 @@ input[type=text] {
 }
 
 #properties {
-	min-height: 140px;
+	min-height: 240px;
 	border-top: 1px solid var(--color-border);
 	display: flex;
     flex-direction: column;
@@ -416,8 +399,8 @@ input[type=text] {
 	color: var(--color-highlight);
 }
 .command_tab.open {
-	background-color: var(--color-hover);
-	color: var(--color-highlight);
+	background-color: var(--color-editor);
+	color: var(--color-subtle);
 }
 
 #editor_popup {
@@ -434,6 +417,22 @@ input[type=text] {
 	max-height: 100vh;
 }
 
+textarea {
+	font-family: Consolas, monospace;
+	padding: 4px 8px;
+	font-size: inherit;
+	color: inherit;
+}
+#properties textarea, #editor_popup textarea {
+	background-color: var(--color-editor);
+}
+#properties textarea:focus, #editor_popup textarea:focus {
+	outline: 1px solid var(--color-border);
+}
+#editor_popup > textarea {
+	height: calc(100% - 50px);
+}
+
 </style>
 
 <style>
@@ -441,7 +440,7 @@ input[type=text] {
 	flex-grow: 1;
 }
 #editor_popup .vue-codemirror {
-	height: calc(100% - 28px);
+	height: calc(100% - 58px);
 	border: 1px solid var(--color-border);
 }
 #editor_popup .ͼ1 {
