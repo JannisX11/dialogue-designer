@@ -3,7 +3,7 @@
 		<div id="editor_bar_top">
 
 		</div>
-		<div id="dialogue">
+		<div id="dialogue" :class="{preview_mode: preview_mode}" @dblclick="preview_mode && togglePreviewMode()">
 			<div class="dialogue_title text_field">
 				<template v-if="!preview_mode">
 					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
@@ -27,6 +27,7 @@
 			<div class="dialogue_buttons">
 				<div class="dialogue_button text_field"
 					v-for="button in scene.buttons" :key="button.uuid"
+					@click="clickButton(button)"
 				>
 					<textarea v-if="!preview_mode" v-model="button.text.text" spellcheck="false" />
 					<minecraft-formatting-preview v-else :text_field="button.text" />
@@ -148,6 +149,15 @@ export default {
 	methods: {
 		togglePreviewMode() {
 			this.preview_mode = !this.preview_mode;
+		},
+		clickButton(button) {
+			if (button.navigate_to || true) {
+				let scene = Scene.all.find(scene => scene.uuid == button.navigate_to);
+				if (!scene) scene = Scene.all[1];
+				if (scene) {
+					scene.select();
+				}
+			}
 		},
 		switchCommandTab(tab) {
 			this.command_tab = tab;
@@ -359,6 +369,22 @@ export default {
 	text-align: center;
 	cursor: pointer;
 }
+#dialogue.preview_mode .dialogue_button:hover {
+	background-color: #218306;
+	color: #ffffff;
+	border-color: #17cd07;
+	border-bottom-color: #004e00;
+	border-right-color: #004e00;
+	outline: 2px solid white;
+}
+#dialogue.preview_mode .dialogue_button:active {
+	background-color: #218306;
+	color: #ffffff;
+	border-color: #004e00;
+	border-bottom-color: #17cd07;
+	border-right-color: #17cd07;
+	outline: 2px solid white;
+}
 .button_add_tool {
 	padding-top: 4px;
 	cursor: pointer;
@@ -420,7 +446,7 @@ input[type=text] {
 textarea {
 	font-family: Consolas, monospace;
 	padding: 4px 8px;
-	font-size: inherit;
+	font-size: 17px;
 	color: inherit;
 }
 #properties textarea, #editor_popup textarea {

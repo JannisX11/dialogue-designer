@@ -1,12 +1,8 @@
 import { Scene } from "./scene";
 import { Project } from "./project";
 import { IO, compileJSON } from "./util";
+import { TextField } from "./text_field";
 
-function rawText(input: string): any {
-	return {
-		rawtext: [{text: input}]
-	}
-}
 
 function processCommands(input: string) {
 	let list = input.split(/\r?\n/);
@@ -25,14 +21,14 @@ export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 	for (let scene of scenes) {
 		let scene_json: any = {
 			scene_tag: Project.prefix + scene.id,
-			npc_name: rawText(scene.npc_name),
-			text: rawText(scene.text),
+			npc_name: scene.npc_name.export(),
+			text: scene.text.export(),
 		};
 		if (scene.buttons.length) {
 			scene_json.buttons = scene.buttons.map(button => {
 				let commands = button.commands.split(/\r?\n/)
 				return {
-					name: rawText(button.text),
+					name: button.text.export(),
 					commands: processCommands(button.commands),
 				}
 			});
@@ -47,6 +43,7 @@ export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 	}
 	return file;
 }
+window.compileDialogueFile = compileDialogueFile;
 
 export function exportDialogueFile(): void {
 	let file = compileDialogueFile();

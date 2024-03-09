@@ -4,7 +4,16 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 </script>
 
 <template>
-	<div id="wrapper" :mobile_page="mobile_page">
+	<div id="start_page" v-if="page == 'start'">
+		<img src="./assets/dialogue_designer_splash.png" height="500">
+		<div>
+			<h1>DialogueDesigner</h1>
+			<p>Create interactive NPC dialogues for Minecraft: Bedrock Edition!</p>
+			<button @click="newFile()">New Dialogue</button>
+			<button @click="importFile()">Open File</button>
+		</div>
+	</div>
+	<div id="wrapper" v-else-if="page == 'editor'" :mobile_page="mobile_page">
 		<header>
 			<h1>DialogueDesigner</h1>
 			<div class="tool" @click="importFile()">
@@ -18,11 +27,9 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 		</header>
 		<div id="sidebar">
 			<h3>Project</h3>
-			<div class="form_bar">
+			<div class="form_grid">
 				<label>File Name</label>
 				<input type="text" v-model="Project.name">
-			</div>
-			<div class="form_bar">
 				<label>Prefix</label>
 				<input type="text" v-model="Project.namespace">
 			</div>
@@ -71,7 +78,7 @@ import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
 import { Plus, MessageSquare, Save, FolderOpen, List, MessageSquareCode } from 'lucide-vue-next'
 import {reactive} from 'vue'
-import { selectFileToImport } from './scripts/import'
+import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
 
 Scene.all = reactive(Scene.all);
@@ -86,6 +93,7 @@ export default {
 			project: Project,
 			selected_scene: null,
 			renaming_scene: false,
+			page: 'start',
 			main_tab: 'scene',
 			languages: Project.languages,
 			selected_language: '',
@@ -93,8 +101,14 @@ export default {
 		}
 	},
 	methods: {
+		newFile() {
+			resetProject();
+			this.page = 'editor';
+		},
 		importFile() {
-			selectFileToImport();
+			selectFileToImport().then(() => {
+				this.page = 'editor';
+			})
 		},
 		saveFile() {
 			exportDialogueFile();
@@ -122,6 +136,29 @@ export default {
 </script>
 
 <style scoped>
+
+#start_page {
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 40px;
+}
+#start_page > * {
+	flex: 0 1 300px;
+}
+#start_page h1 {
+	padding-left: 0;
+	font-size: 32px;
+}
+#start_page p {
+	margin: 16px 0;
+}
+#start_page button {
+	display: inline-block;
+	margin-right: 8px;
+}
+
 #wrapper {
 	height: 100%;
 	display: grid;
@@ -158,6 +195,9 @@ nav#mobile_nav {
 	display: none;
 }
 @media only screen and (max-width: 800px) {
+	#start_page {
+		flex-direction: column;
+	}
 	#wrapper {
 		height: 100%;
 		display: grid;
@@ -193,6 +233,15 @@ nav#mobile_nav {
 	display: flex;
 	gap: 6px;
 	align-items: center;
+}
+.form_grid {
+	padding: 2px 8px;
+	display: grid;
+	grid-template-columns: auto auto;
+	gap: 6px;
+}
+.form_grid label {
+	padding: 3px 0;
 }
 .tool {
 	display: flex;

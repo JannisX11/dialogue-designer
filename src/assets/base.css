@@ -1,12 +1,13 @@
 
 :root {
 	--color-background: #272d32;
-	--color-editor: #1d2226;
+	--color-editor: #1d2429;
 	--color-hover: #3e474f;
 	--color-border: #4c5863;
 	--color-text: #c2c8cd;
 	--color-highlight: #eef7ff;
 	--color-subtle: #959fa7;
+	--color-accent: #ea812b;
 
 	--color-mcui-background: #a2abb1;
 	--color-mcui-text: #424547;
@@ -88,7 +89,24 @@ input[type=text], input[type=number], input:not([type]) {
 input:active, select:active {
 	outline-color: 1px solid #3c6a89;
 }
-
+button {
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	margin: 0;
+	appearance: none;
+	border: none;
+	background-color: var(--color-hover);
+	color: inherit;
+	font-size: inherit;
+	padding: 8px 12px;
+	border-radius: 1px;
+	cursor: pointer;
+}
+button:hover {
+	background-color: var(--color-accent);
+	color: black;
+}
 h3 {
 	user-select: none;
 	color: var(--color-subtle);

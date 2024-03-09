@@ -23,14 +23,18 @@ document.body.ondrop = function(event) {
 	}
 }
 
-export function selectFileToImport(): void {
-	console.log('test')
-	IO.import({
-		extensions: ['json']
-	}, (files) => {
-		if (files[0]) {
-			importDialogueFile(JSON.parse(files[0].content))
-		}
+export async function selectFileToImport(): Promise<void> {
+	await new Promise((resolve, reject) => {
+		IO.import({
+			extensions: ['json']
+		}, (files) => {
+			if (files[0]) {
+				importDialogueFile(JSON.parse(files[0].content))
+				resolve(files[0]);
+			} else {
+				reject();
+			}
+		})
 	})
 }
 
@@ -97,12 +101,12 @@ export function importDialogueFile(json: object): void {
 
 		let scene = new Scene();
 		scene.id = scene_json.scene_tag.replace(Project.prefix, '');
-		scene.npc_name = getText(scene_json.npc_name);
-		scene.text = getText(scene_json.text);
+		scene.npc_name.fromJSON(scene_json.npc_name);
+		scene.text.fromJSON(scene_json.text);
 		if (scene_json.buttons instanceof Array) {
 			for (let button_json of scene_json.buttons) {
 				let button = scene.addButton();
-				button.text = getText(button_json.name);
+				button.text.fromJSON(button_json.name);
 				if (button_json.commands instanceof Array) {
 					button.commands = button_json.commands.join('\n');
 				}

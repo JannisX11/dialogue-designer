@@ -19,11 +19,7 @@ export default {
 	}},
 	computed: {
 		text() {
-			if (this.text_field.mode == 'text') {
-				return this.text_field.text;
-			} else {
-				return '';
-			}
+			return this.text_field.getPreview();
 		}
 	},
 	render() {
@@ -176,4 +172,4 @@ export default {
 		color: #DDD605;
 	}
 	
-</style>import { TextField } from '../scripts/text_field';
+</style>
