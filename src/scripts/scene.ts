@@ -4,9 +4,11 @@ import { uuid } from "./util";
 export class DialogueButton {
 	text: TextField
 	commands: string
+	navigate_to: string
 	constructor() {
 		this.text = new TextField('Button');
 		this.commands = '';
+		this.navigate_to = '';
 	}
 }
 
@@ -30,6 +32,12 @@ export class Scene {
 		];
 		this.on_open_commands = '';
 		this.on_close_commands = '';
+
+		let i = 2;
+		while (Scene.all.find(s => s.id == this.id) && i < 200) {
+			this.id = 'scene_'+i;
+			i++;
+		}
 
 		Scene.all.push(this);
 	}

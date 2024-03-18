@@ -48,17 +48,22 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 					@click="selectScene(scene)"
 					@dblclick="renameScene(scene)"
 				>
-					<MessageSquare />
+					<MessageSquare :size="22" />
 					<input type="text" v-model="scene.id" :readonly="scene == selected_scene && renaming_scene ? false : true" spellcheck="false" @blur="renaming_scene = false">
 				</li>
 			</ul>
 
-			<h3>Localization</h3>
-			<p @click="">EN-US</p>
+			<h3>Languages</h3>
+			<ul id="lang_file_list">
+				<li class="lang_file" v-for="language in lang_files" :key="language.uuid" @click="selectLangFile(language)" :class="{selected: language == selected_lang_file}">
+					{{ language.id }}
+				</li>
+				<Plus :size="22" @click="addLangFile()" />
+			</ul>
 		</div>
 		<main>
-			<LocalizationEditor v-if="main_tab == 'localization'" ></LocalizationEditor>
-			<SceneEditor v-if="selected_scene" :scene="selected_scene"></SceneEditor>
+			<LocalizationEditor v-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
+			<SceneEditor v-else-if="selected_scene" :scene="selected_scene"></SceneEditor>
 		</main>
 		<nav id="mobile_nav">
 			<div @click="mobile_page = 'sidebar'">
@@ -80,23 +85,27 @@ import { Plus, MessageSquare, Save, FolderOpen, List, MessageSquareCode } from '
 import {reactive} from 'vue'
 import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
+import { LangFile } from './scripts/lang_file';
 
 Scene.all = reactive(Scene.all);
+LangFile.all = reactive(LangFile.all);
 
 export default {
 	components: {
-		SceneEditor
+		SceneEditor,
+		LocalizationEditor
 	},
 	data() {
 		return {
 			scenes: Scene.all,
+			lang_files: LangFile.all,
 			project: Project,
 			selected_scene: null,
 			renaming_scene: false,
 			page: 'start',
 			main_tab: 'scene',
 			languages: Project.languages,
-			selected_language: '',
+			selected_lang_file: null,
 			mobile_page: 'sidebar'
 		}
 	},
@@ -118,11 +127,21 @@ export default {
 			this.selectScene(scene);
 		},
 		selectScene(scene) {
+			this.selected_lang_file = null;
 			this.selected_scene = scene;
 			Scene.selected = scene;
 		},
 		renameScene(scene) {
 			this.renaming_scene = true;
+		},
+		addLangFile() {
+			let lf = new LangFile('en-US').setUniqueID();
+			this.selectLangFile(lf);
+		},
+		selectLangFile(lf) {
+			this.selected_scene = null;
+			this.selected_lang_file = lf;
+			console.log(this.selected_lang_file);
 		}
 	},
 	mounted() {
@@ -284,6 +303,34 @@ h3 {
 .scene > input[type=text]:read-only {
 	outline: none;
 	cursor: inherit;
+}
+#lang_file_list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-block: 16px;
+	padding: 2px 6px;
+	align-items: center;
+}
+#lang_file_list > svg {
+	cursor: pointer;
+}
+#lang_file_list > svg:hover {
+	color: var(--color-highlight);
+}
+.lang_file {
+	padding: 2px 8px;
+	border: 1px solid var(--color-border);
+	border-radius: 4px;
+	cursor: pointer;
+}
+.lang_file:hover {
+	background-color: var(--color-hover);
+	color: var(--color-highlight);
+}
+.lang_file.selected {
+	background-color: var(--color-selected);
+	color: var(--color-highlight);
 }
 
 </style>

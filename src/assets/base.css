@@ -4,9 +4,11 @@
 	--color-editor: #1d2429;
 	--color-hover: #3e474f;
 	--color-border: #4c5863;
+	--color-selected: #4c5863;
 	--color-text: #c2c8cd;
 	--color-highlight: #eef7ff;
 	--color-subtle: #959fa7;
+	--color-placeholder: #60676d;
 	--color-accent: #ea812b;
 
 	--color-mcui-background: #a2abb1;
@@ -89,6 +91,19 @@ input[type=text], input[type=number], input:not([type]) {
 input:active, select:active {
 	outline-color: 1px solid #3c6a89;
 }
+::placeholder {
+	color: var(--color-placeholder);
+	opacity: 1; /* Firefox */
+}
+textarea {
+	font-family: Consolas, monospace;
+	color: inherit;
+	resize: none;
+	font-weight: inherit;
+}
+textarea:focus, textarea:focus {
+	outline: 1px solid var(--color-border);
+}
 button {
 	font-family: inherit;
 	font-size: inherit;
@@ -111,6 +126,19 @@ h3 {
 	user-select: none;
 	color: var(--color-subtle);
     font-size: 1.3em;
+}
+dialog {
+	margin: auto;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background);
+	box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+	padding: 12px;
+	color: inherit;
+	border-radius: 4px;
+	width: 680px;
+	height: 500px;
+	max-width: 100vw;
+	max-height: 100vh;
 }
 
 /* Code Mirror */

@@ -1,16 +1,16 @@
 <template>
-	<div id="scene_editor">
+	<div id="scene_editor" @click.stop="setSelectedInput('')">
 		<div id="editor_bar_top">
 
 		</div>
 		<div id="dialogue" :class="{preview_mode: preview_mode}" @dblclick="preview_mode && togglePreviewMode()">
-			<div class="dialogue_title text_field">
+			<div class="dialogue_title text_field" @click="setSelectedInput('npc_name')">
 				<template v-if="!preview_mode">
 					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
-					<div class="text_field_switcher">
-						<Baseline :size="19" @click="scene.npc_name.switchMode('text')" :class="{selected: scene.npc_name.mode == 'text'}" />
-						<Globe :size="19" @click="scene.npc_name.switchMode('translation')" :class="{selected: scene.npc_name.mode == 'translation'}" />
-						<Braces :size="19" @click="scene.npc_name.switchMode('json')" :class="{selected: scene.npc_name.mode == 'json'}" />
+					<div class="text_field_switcher" v-if="selected_input == 'npc_name'">
+						<Baseline :size="19" title="Type: Plain Text" @click="scene.npc_name.switchMode('text')" :class="{selected: scene.npc_name.mode == 'text'}" />
+						<Globe :size="19" title="Type: Translated" @click="scene.npc_name.switchMode('translate')" :class="{selected: scene.npc_name.mode == 'translate'}" />
+						<Braces :size="19" title="Type: JSON Rawtext" @click="scene.npc_name.switchMode('json'); editInPopup('npc_name')" :class="{selected: scene.npc_name.mode == 'json'}" />
 					</div>
 				</template>
 				<minecraft-formatting-preview v-else :text_field="scene.npc_name" />
@@ -19,18 +19,43 @@
 				<div class="portrait_dummy" @click="editInPopup('text')">
 					<User />
 				</div>
-				<div class="dialogue_content text_field">
-					<textarea v-if="!preview_mode" v-model="scene.text.text" spellcheck="false" />
+				<div class="dialogue_content text_field" @click="setSelectedInput('text')">
+					<template v-if="!preview_mode">
+						<textarea v-model="scene.text.text" spellcheck="false" :readonly="scene.text.mode == 'json'" @click="scene.text.mode == 'json' && editInPopup('text')" />
+						<div class="text_field_switcher" v-if="selected_input == 'text'">
+							<Baseline :size="19" title="Type: Plain Text" @click="scene.text.switchMode('text')" :class="{selected: scene.text.mode == 'text'}" />
+							<Globe :size="19" title="Type: Translated" @click="scene.text.switchMode('translate')" :class="{selected: scene.text.mode == 'translate'}" />
+							<Braces :size="19" title="Type: JSON Rawtext" @click="scene.text.switchMode('json'); editInPopup('text')" :class="{selected: scene.text.mode == 'json'}" />
+						</div>
+					</template>
 					<minecraft-formatting-preview v-else :text_field="scene.text" />
 				</div>
 			</div>
 			<div class="dialogue_buttons">
 				<div class="dialogue_button text_field"
-					v-for="button in scene.buttons" :key="button.uuid"
-					@click="clickButton(button)"
+					v-for="(button, i) in scene.buttons" :key="button.uuid"
+					@click="clickButton(button); setSelectedInput('button'+(i+1))"
 				>
-					<textarea v-if="!preview_mode" v-model="button.text.text" spellcheck="false" />
+					<template v-if="!preview_mode">
+						<input type="text" v-model="button.text.text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
+						<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
+
+							<div class="text_field_switcher">
+								<Baseline :size="19" title="Type: Plain Text" @click="button.text.switchMode('text')" :class="{selected: button.text.mode == 'text'}" />
+								<Globe :size="19" title="Type: Translated" @click="button.text.switchMode('translate')" :class="{selected: button.text.mode == 'translate'}" />
+								<Braces :size="19" title="Type: JSON Rawtext" @click="button.text.switchMode('json'); editInPopup('button'+(i+1))" :class="{selected: button.text.mode == 'json'}" />
+							</div>
+							<div class="button_option_bar">
+								<label>Navigate To:</label>
+								<select v-model="button.navigate_to">
+									<option :value="''">-</option>
+									<option v-for="(goto_name, goto_uuid) in getAvailableScenes()" :key="goto_uuid" :value="goto_uuid">{{ goto_name }}</option>
+								</select>
+							</div>
+						</div>
+					</template>
 					<minecraft-formatting-preview v-else :text_field="button.text" />
+
 				</div>
 				<div class="button_add_tool" v-if="scene.buttons.length < 3" @click="scene.addButton()">
 					<Plus :size="28" />
@@ -130,6 +155,7 @@ export default {
 			],
 			codemirror_extensions: [oneDark, json(), lineNumbers()],
 			preview_mode: true,
+			selected_input: '',
 			command_tab: 'on_open',
 			popup_edit_key: '',
 			popup_error: '',
@@ -147,11 +173,25 @@ export default {
 	computed: {
 	},
 	methods: {
+		getAvailableScenes() {
+			let scenes = {};
+			for (let scene of Scene.all) {
+				if (scene == this.scene) continue;
+				scenes[scene.uuid] = scene.id;
+			}
+			return scenes;
+		},
+		setSelectedInput(id) {
+			if (this.preview_mode) return;
+			this.selected_input = id;
+		},
 		togglePreviewMode() {
 			this.preview_mode = !this.preview_mode;
 		},
 		clickButton(button) {
-			if (button.navigate_to || true) {
+			console.log(this.preview_mode)
+			if (!this.preview_mode) return;
+			if (button.navigate_to) {
 				let scene = Scene.all.find(scene => scene.uuid == button.navigate_to);
 				if (!scene) scene = Scene.all[1];
 				if (scene) {
@@ -223,6 +263,33 @@ export default {
 </script>
 
 <style scoped>
+.button_edit_overlay {
+	position: absolute;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background);
+	color: var(--color-text);
+	top: 36px;
+	right: 0;
+	height: 82px;
+	width: 100%;
+	padding: 8px;
+	border-radius: 4px;
+	overflow: hidden;
+	z-index: 2;
+}
+.button_edit_overlay .text_field_switcher {
+	border: none;
+	background-color: transparent;
+    position: relative;
+    justify-content: end;
+	border-radius: 4px;
+    margin-bottom: 4px;
+}
+.button_option_bar {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
 .text_field_switcher {
 	position: absolute;
 	display: flex;
@@ -234,6 +301,7 @@ export default {
 	right: 0;
 	border-radius: 15px;
 	overflow: hidden;
+	z-index: 2;
 }
 .text_field_switcher > svg {
 	cursor: pointer;
@@ -295,7 +363,6 @@ export default {
 	border-radius: 9px;
 	border-bottom-color: var(--color-mcui-shadow);
 	border-right-color: var(--color-mcui-shadow);
-	overflow: auto;
 	padding: 15px;
 	margin: auto;
 	margin-top: 50px;
@@ -353,6 +420,7 @@ export default {
 	padding: 15px 2px;
 	padding-bottom: 8px;
 	min-height: 63px;
+	flex-wrap: wrap;
 }
 
 .dialogue_button {
@@ -401,7 +469,7 @@ input[type=text] {
 }
 
 #properties {
-	min-height: 240px;
+	min-height: 210px;
 	border-top: 1px solid var(--color-border);
 	display: flex;
     flex-direction: column;
@@ -430,17 +498,8 @@ input[type=text] {
 }
 
 #editor_popup {
-	margin: auto;
-	border: 1px solid var(--color-border);
-	background-color: var(--color-background);
-	box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
-	padding: 12px;
-	color: inherit;
-	border-radius: 4px;
 	width: 680px;
 	height: 500px;
-	max-width: 100vw;
-	max-height: 100vh;
 }
 
 textarea {
@@ -451,9 +510,6 @@ textarea {
 }
 #properties textarea, #editor_popup textarea {
 	background-color: var(--color-editor);
-}
-#properties textarea:focus, #editor_popup textarea:focus {
-	outline: 1px solid var(--color-border);
 }
 #editor_popup > textarea {
 	height: calc(100% - 50px);

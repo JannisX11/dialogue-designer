@@ -1,9 +1,13 @@
+import { LangFile } from "./lang_file";
 import { compileJSON } from "./util"
 
-type TextComponent = string | {}
 type TextFieldMode = 'text' | 'translate' | 'json';
 
 function translate(key: string): string {
+	for (let language of LangFile.all) {
+		let result = language.getTranslation(key);
+		if (result) return result;
+	}
 	return key;
 }
 
@@ -42,7 +46,7 @@ export class TextField {
 
 			if (data.rawtext instanceof Array && data.rawtext.length == 1 && data.rawtext[0]?.translate && Object.keys(data.rawtext[0].translate).length == 1) {
 				this.mode = 'translate';
-				this.translate_key = data.rawtext[0].translate;
+				this.text = data.rawtext[0].translate;
 				
 			} else {
 				this.mode = 'json';
@@ -57,7 +61,7 @@ export class TextField {
 			return {
 				rawtext: [
 					{
-						translate: this.translate_key
+						translate: this.text
 					}
 				]
 			};
@@ -81,11 +85,14 @@ export class TextField {
 		this.mode = mode;
 	}
 	getPreview(): string {
+		console.log(this)
 		if (this.mode == 'text') {
 			return this.text;
 
 		} else if (this.mode == 'translate') {
-			return translate(this.translate_key);
+			let a = translate(this.text);
+			console.log(a, LangFile.all);
+			return a;
 
 		} else {
 			let text: string = '';
