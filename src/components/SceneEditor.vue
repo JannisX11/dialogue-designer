@@ -1,9 +1,9 @@
 <template>
-	<div id="scene_editor" @click.stop="setSelectedInput('')">
+	<div id="scene_editor" ref="main" @click="($event.target == $refs.main || $event.target == $refs.dialogue) && setSelectedInput('')">
 		<div id="editor_bar_top">
 
 		</div>
-		<div id="dialogue" :class="{preview_mode: preview_mode}" @dblclick="preview_mode && togglePreviewMode()">
+		<div id="dialogue" ref="dialogue" :class="{preview_mode: preview_mode}" @dblclick="preview_mode && togglePreviewMode()">
 			<div class="dialogue_title text_field" @click="setSelectedInput('npc_name')">
 				<template v-if="!preview_mode">
 					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
@@ -189,7 +189,6 @@ export default {
 			this.preview_mode = !this.preview_mode;
 		},
 		clickButton(button) {
-			console.log(this.preview_mode)
 			if (!this.preview_mode) return;
 			if (button.navigate_to) {
 				let scene = Scene.all.find(scene => scene.uuid == button.navigate_to);
@@ -289,6 +288,7 @@ export default {
 	display: flex;
 	gap: 12px;
 	align-items: center;
+	white-space: nowrap;
 }
 .text_field_switcher {
 	position: absolute;
@@ -297,7 +297,7 @@ export default {
 	border: 1px solid var(--color-border);
 	background-color: var(--color-background);
 	color: var(--color-text);
-	top: 0;
+	top: -24px;
 	right: 0;
 	border-radius: 15px;
 	overflow: hidden;
@@ -393,9 +393,15 @@ export default {
 }
 .portrait_dummy {
 	width: 150px;
+	flex-shrink: 0;
 	background: #494949;
 	border: 3px solid black;
 	position: relative;
+}
+@media only screen and (max-width: 800px) {
+	.portrait_dummy {
+		display: none;
+	}
 }
 .portrait_dummy > svg {
 	position: absolute;

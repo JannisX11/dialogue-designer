@@ -1,3 +1,4 @@
+import { Project } from "./project";
 import { TextField } from "./text_field";
 import { uuid } from "./util";
 
@@ -53,6 +54,28 @@ export class Scene {
 		}
 	}
 	select(): void {}
+	copy(scene: Scene): this {
+		this.id = scene.id;
+		this.makeNameUnique();
+		this.on_open_commands = scene.on_open_commands;
+		this.on_close_commands = scene.on_close_commands;
+		// Todo: text, name, buttons
+
+		return this;
+	}
+	makeNameUnique(): void {
+		let un_numbered_id = this.id.replace(/_\d+$/, '');
+		let i = 2;
+		while (Scene.all.find(s => (s.id == this.id && s.uuid != this.uuid)) && i < 200) {
+			console.log(Scene.all.find(s => (s.id == this.id && s.uuid != this.uuid)))
+			this.id = un_numbered_id + '_' + i;
+			i++;
+		}
+	}
+	getSceneTag(): string {
+		return Project.prefix + this.id;
+	}
 	static all: Scene[] = [];
 }
+// @ts-ignore
 window.Scene = Scene

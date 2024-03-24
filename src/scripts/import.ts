@@ -1,5 +1,5 @@
 import { Project } from "./project";
-import { Scene } from "./scene";
+import { DialogueButton, Scene } from "./scene";
 import { IO } from "./util";
 
 
@@ -7,14 +7,14 @@ document.ondragover = function(event) {
 	event.preventDefault()
 }
 document.body.ondrop = function(event) {
-	var file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+	let file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
 	if (file) {
 		if (file.name.endsWith('json')) {
 			let reader = new FileReader()
 			reader.onloadend = function() {
 				if (typeof reader.result == 'string') {
 					let json = JSON.parse(reader.result);
-					importDialogueFile(json);
+					importDialogueFile(json, file ? file.name : '');
 				}
 			}
 			reader.readAsText(file)
@@ -29,7 +29,7 @@ export async function selectFileToImport(): Promise<void> {
 			extensions: ['json']
 		}, (files) => {
 			if (files[0]) {
-				importDialogueFile(JSON.parse(files[0].content))
+				importDialogueFile(JSON.parse(files[0].content), files[0].name);
 				resolve(files[0]);
 			} else {
 				reject();
@@ -60,17 +60,22 @@ function getText(input: any): string {
 }
 
 export function resetProject() {
+	Project.name = '';
 	Project.prefix = '';
+	Project.customized_prefix = false;
 	Scene.all.splice(0);
 }
 
 
-export function importDialogueFile(json: object): void {
+export function importDialogueFile(json: object, file_name: string): void {
+
+	resetProject();
 
 	let scenes = json['minecraft:npc_dialogue']?.scenes;
 	if (!scenes || !(scenes instanceof Array)) return;
 
-	resetProject();
+	Project.name = file_name.replace(/(\.dialogue)?\.json$/i, '');
+	Project.customized_prefix = true;
 
 	// Find common prefix
 	if (scenes.length > 1) {
@@ -89,12 +94,14 @@ export function importDialogueFile(json: object): void {
 					}
 				}
 			}
-			console.log(largest_common)
 		}
-		Project.prefix = first_tag.substring(0, largest_common.join('_').length+1);
+		Project.prefix = largest_common.length ? first_tag.substring(0, largest_common.join('_').length+1) : '';
 	}
-	console.log(scenes.length, Project.prefix)
 
+	let navigation_list: {button: DialogueButton, commands: string[]}[] = [];
+	let resolveNavigation = (button: DialogueButton, commands: string[]) => {
+		navigation_list.push({button, commands});
+	}
 
 	let i = 0;
 	for (let scene_json of scenes) {
@@ -108,7 +115,8 @@ export function importDialogueFile(json: object): void {
 				let button = scene.addButton();
 				button.text.fromJSON(button_json.name);
 				if (button_json.commands instanceof Array) {
-					button.commands = button_json.commands.join('\n');
+					let commands = button_json.commands;
+					resolveNavigation(button, commands);
 				}
 			}
 		}
@@ -122,5 +130,20 @@ export function importDialogueFile(json: object): void {
 			scene.select();
 		}
 		i++;
+	}
+	for (let {button, commands} of navigation_list) {
+		console.log(button, commands)
+		let nav_command_index = commands.findIndex(command => command.startsWith('/dialogue open @s @initiator '));
+		console.log(nav_command_index, commands[nav_command_index])
+		if (nav_command_index != -1) {
+			let target_scene_id = commands[nav_command_index].replace('/dialogue open @s @initiator ', '');
+			let target_scene = Scene.all.find(s => s.getSceneTag() == target_scene_id);
+			console.log(target_scene)
+			if (target_scene) {
+				button.navigate_to = target_scene.uuid;
+				commands.splice(nav_command_index, 1);
+			}
+		}
+		button.commands = commands.join('\n');
 	}
 }

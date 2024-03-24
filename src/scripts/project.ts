@@ -3,5 +3,8 @@
 export const Project = {
 	name: '',
 	prefix: '',
-	languages: {}
+	customized_prefix: false,
+	languages: {},
 }
+// @ts-ignore
+window.Project = Project

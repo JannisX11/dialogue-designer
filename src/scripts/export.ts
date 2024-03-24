@@ -2,6 +2,7 @@ import { Scene } from "./scene";
 import { Project } from "./project";
 import { IO, compileJSON } from "./util";
 import { TextField } from "./text_field";
+import { LangFile } from "./lang_file";
 
 
 function processCommands(input: string) {
@@ -26,10 +27,21 @@ export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 		};
 		if (scene.buttons.length) {
 			scene_json.buttons = scene.buttons.map(button => {
-				let commands = button.commands.split(/\r?\n/)
+				let commands = processCommands(button.commands);
+				if (button.navigate_to) {
+					let target_scene = Scene.all.find(scene2 => scene2.uuid == button.navigate_to);
+					if (target_scene) {
+						let navigate_command = `/dialogue open @s @initiator ${Project.prefix + target_scene.id}`;
+						if (commands) {
+							commands.splice(0, 0, navigate_command);
+						} else {
+							commands = [navigate_command];
+						}
+					}
+				}
 				return {
 					name: button.text.export(),
-					commands: processCommands(button.commands),
+					commands
 				}
 			});
 		}
@@ -43,7 +55,6 @@ export function compileDialogueFile(scenes: Scene[] = Scene.all): Object {
 	}
 	return file;
 }
-window.compileDialogueFile = compileDialogueFile;
 
 export function exportDialogueFile(): void {
 	let file = compileDialogueFile();
@@ -51,5 +62,13 @@ export function exportDialogueFile(): void {
 	IO.export({
 		name: (Project.name||'unknown') + '.dialogue.json',
 		content,
+	})
+}
+export function exportLangFile(lang_id: string): void {
+	let language = LangFile.all.find(l => l.id == lang_id);
+	if (!language) return;
+	IO.export({
+		name: (Project.name||'unknown') + '.dialogue.json',
+		content: language.content,
 	})
 }

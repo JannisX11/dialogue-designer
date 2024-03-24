@@ -9,7 +9,8 @@
 	--color-highlight: #eef7ff;
 	--color-subtle: #959fa7;
 	--color-placeholder: #60676d;
-	--color-accent: #ea812b;
+	--color-accent: #ffd65c;
+	--color-accent-hover: #ffe5a2;
 
 	--color-mcui-background: #a2abb1;
 	--color-mcui-text: #424547;
@@ -127,6 +128,15 @@ h3 {
 	color: var(--color-subtle);
     font-size: 1.3em;
 }
+a:link {
+	color: #7ea3bc;
+}
+a:visited {
+	color: #7e83bc;
+}
+a:hover {
+	color: #a8dae7;
+}
 dialog {
 	margin: auto;
 	border: 1px solid var(--color-border);
@@ -139,6 +149,19 @@ dialog {
 	height: 500px;
 	max-width: 100vw;
 	max-height: 100vh;
+}
+
+.tool {
+	display: flex;
+	cursor: pointer;
+	height: 30px;
+	align-items: center;
+	justify-content: center;
+	padding: 2px;
+	gap: 5px;
+}
+.tool:hover {
+	color: var(--color-highlight);
 }
 
 /* Code Mirror */

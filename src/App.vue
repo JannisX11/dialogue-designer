@@ -1,6 +1,7 @@
 <script setup>
 import SceneEditor from './components/SceneEditor.vue'
 import LocalizationEditor from './components/LocalizationEditor.vue'
+import ExportDialog from './components/ExportDialog.vue'
 </script>
 
 <template>
@@ -11,6 +12,7 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 			<p>Create interactive NPC dialogues for Minecraft: Bedrock Edition!</p>
 			<button @click="newFile()">New Dialogue</button>
 			<button @click="importFile()">Open File</button>
+			<p>Documentation: <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue?view=minecraft-bedrock-stable#creating-npc-dialogue" target="_blank" ref="noopener">Learning Portal</a></p>
 		</div>
 	</div>
 	<div id="wrapper" v-else-if="page == 'editor'" :mobile_page="mobile_page">
@@ -20,28 +22,37 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 				<FolderOpen :size="22" />
 				Import
 			</div>
-			<div class="tool" @click="saveFile()">
+			<div class="tool" @click="newFile()">
+				<FilePlus :size="22" />
+				New File
+			</div>
+			<div class="tool export_button" @click="openExportDialog()">
 				<Save :size="22" />
-				Save
+				Export
 			</div>
 		</header>
 		<div id="sidebar">
 			<h3>Project</h3>
 			<div class="form_grid">
 				<label>File Name</label>
-				<input type="text" v-model="Project.name">
+				<input type="text" v-model="project.name" @input="updateProjectName()">
 				<label>Prefix</label>
-				<input type="text" v-model="Project.namespace">
+				<input type="text" v-model="project.prefix" @input="project.customized_prefix = true;">
 			</div>
 
 			<h3>Scenes</h3>
 			<ul>
-				<div class="tool" @click="addScene()">
+				<div class="tool" @click="addScene()" title="Add Scene">
 					<Plus :size="22" />
-					Add Scene
+				</div>
+				<div class="tool" @click="duplicateScene()" title="Duplicate Scene">
+					<Copy :size="22" />
+				</div>
+				<div class="tool" @click="deleteScene()" title="Delete Scene">
+					<Trash :size="22" />
 				</div>
 			</ul>
-			<ul style="flex-grow: 1;">
+			<ul id="scene_list">
 				<li v-for="scene in scenes" :key="scene.uuid"
 					class="scene"
 					:class="{selected: scene == selected_scene, a: true}" 
@@ -54,11 +65,24 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 			</ul>
 
 			<h3>Languages</h3>
+			<ul>
+				<div class="tool" @click="addLanguage()" title="Create Language File">
+					<Plus :size="22" />
+				</div>
+				<div class="tool" @click="importLanguage()" title="Import Language File">
+					<FolderOpen :size="22" />
+				</div>
+				<div class="tool" @click="duplicateLanguage()" title="Duplicate Language File">
+					<Copy :size="22" />
+				</div>
+				<div class="tool" @click="deleteLanguage()" title="Delete Language File">
+					<Trash :size="22" />
+				</div>
+			</ul>
 			<ul id="lang_file_list">
 				<li class="lang_file" v-for="language in lang_files" :key="language.uuid" @click="selectLangFile(language)" :class="{selected: language == selected_lang_file}">
 					{{ language.id }}
 				</li>
-				<Plus :size="22" @click="addLangFile()" />
 			</ul>
 		</div>
 		<main>
@@ -73,6 +97,8 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 				<MessageSquareCode />
 			</div>
 		</nav>
+
+		<export-dialog ref="export_dialog"></export-dialog>
 	</div>
 </template>
 
@@ -81,25 +107,28 @@ import LocalizationEditor from './components/LocalizationEditor.vue'
 
 import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
-import { Plus, MessageSquare, Save, FolderOpen, List, MessageSquareCode } from 'lucide-vue-next'
+import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
 import {reactive} from 'vue'
 import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
-import { LangFile } from './scripts/lang_file';
+import { importLangFile, LangFile } from './scripts/lang_file';
 
+let reactive_project = reactive(Project);
 Scene.all = reactive(Scene.all);
 LangFile.all = reactive(LangFile.all);
 
 export default {
 	components: {
 		SceneEditor,
-		LocalizationEditor
+		LocalizationEditor,
+		ExportDialog,
+		Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode
 	},
 	data() {
 		return {
 			scenes: Scene.all,
 			lang_files: LangFile.all,
-			project: Project,
+			project: reactive_project,
 			selected_scene: null,
 			renaming_scene: false,
 			page: 'start',
@@ -122,9 +151,26 @@ export default {
 		saveFile() {
 			exportDialogueFile();
 		},
+		updateProjectName() {
+			if (!this.project.customized_prefix) {
+				this.project.prefix = this.project.name + '_';
+			}
+		},
+		openExportDialog() {
+			this.$refs.export_dialog.open();
+		},
 		addScene() {
 			let scene = new Scene();
 			this.selectScene(scene);
+		},
+		duplicateScene() {
+			let scene = new Scene().copy(this.selected_scene);
+			this.selectScene(scene);
+		},
+		deleteScene() {
+			let index = Scene.all.indexOf(this.selected_scene);
+			Scene.all.splice(index, 1);
+			this.selectScene(Scene.all[Math.min(index, Scene.all.length-1)]);
 		},
 		selectScene(scene) {
 			this.selected_lang_file = null;
@@ -134,9 +180,25 @@ export default {
 		renameScene(scene) {
 			this.renaming_scene = true;
 		},
-		addLangFile() {
+		addLanguage() {
 			let lf = new LangFile('en-US').setUniqueID();
 			this.selectLangFile(lf);
+		},
+		importLanguage() {
+			importLangFile().then(lang_file => {
+				if (lang_file) this.selected_lang_file = lang_file;
+			})
+		},
+		duplicateLanguage() {
+			let source = this.selected_lang_file;
+			let lf = new LangFile(source.id).copy(source);
+			this.selectLangFile(lf);
+		},
+		deleteLanguage() {
+			let selected = this.selected_lang_file;
+			if (selected.content.length < 5 || confirm('Do you really want to delete this lang file')) {
+				LangFile.all.splice(LangFile.indexOf(selected), 1);
+			}
 		},
 		selectLangFile(lf) {
 			this.selected_scene = null;
@@ -155,6 +217,17 @@ export default {
 </script>
 
 <style scoped>
+
+.tool.export_button {
+	background-color: var(--color-accent);
+	color: black;
+	margin-left: auto;
+	padding: 0 16px;
+	height: 100%;
+}
+.tool.export_button:hover {
+	background-color: var(--color-accent-hover);
+}
 
 #start_page {
 	height: 100%;
@@ -192,10 +265,11 @@ header {
 	border-bottom: 1px solid var(--color-border);
 	display: flex;
 	align-items: center;
+	gap: 12px;
 }
 h1 {
 	font-size: 22px;
-	padding: 0 22px;
+	padding: 0 18px;
 	color: var(--color-subtle);
 }
 #sidebar {
@@ -203,6 +277,7 @@ h1 {
 	border-right: 1px solid var(--color-border);
 	display: flex;
 	flex-direction: column;
+	max-height: calc(100vh - 40px);
 }
 main {
 	grid-area: editor;
@@ -264,20 +339,25 @@ nav#mobile_nav {
 }
 .tool {
 	display: flex;
-	cursor: pointer;
-	height: 30px;
 	align-items: center;
 	padding: 2px;
 	gap: 5px;
 }
-.tool:hover {
-	color: var(--color-highlight);
+ul .tool {
+	display: inline-flex;
+	width: 40px;
+	justify-content: center;
 }
+
 h3 {
 	color: var(--color-subtle);
 	margin-top: 20px;
 	padding: 5px;
 	user-select: none;
+}
+#scene_list {
+	flex-grow: 1;
+	overflow-y: auto;
 }
 .scene {
 	height: 36px;
@@ -308,9 +388,11 @@ h3 {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
-	margin-block: 16px;
+	margin-bottom: 18px;
 	padding: 2px 6px;
 	align-items: center;
+	list-style: none;
+	overflow-y: auto;
 }
 #lang_file_list > svg {
 	cursor: pointer;
@@ -323,6 +405,7 @@ h3 {
 	border: 1px solid var(--color-border);
 	border-radius: 4px;
 	cursor: pointer;
+	min-width: 60px;
 }
 .lang_file:hover {
 	background-color: var(--color-hover);
