@@ -103,6 +103,8 @@ export default {
 		text-indent: 0.3px;
 		/*text-shadow: 2px 2px var(--color-shadow);*/
 		user-select: text;
+		line-height: initial;
+		padding: 4px;
 	}
 	.minecraft_formatting_preview.unicode_charset {
 		font-family: "segoe ui", sans-serif;

@@ -69,7 +69,7 @@ export class LangFile {
 			let eq_index = line.search('=');
 			let key = line.substring(0, eq_index);
 			if (key == input_key) {
-				return line.substring(eq_index+1);
+				return line.substring(eq_index+1).replace(/\t*#.*/, '');
 			}
 		}
 		return null;
@@ -78,15 +78,20 @@ export class LangFile {
 	static all: LangFile[] = [];
 }
 
+export function loadLangFile(file: {name: string, content: string}): LangFile {
+	let lang_file = new LangFile(file.name.split('.')[0]).setUniqueID();
+	lang_file.content = file.content;
+	lang_file.modified = false;
+	return lang_file;
+}
+
 export async function importLangFile(): Promise<LangFile> {
 	return await new Promise((resolve, reject) => {
 		IO.import({
 			extensions: ['lang']
 		}, (files) => {
 			if (files[0]) {
-				let lang_file = new LangFile(files[0].name.split('.')[0]).setUniqueID();
-				lang_file.content = files[0].content;
-				lang_file.modified = false;
+				let lang_file = loadLangFile(files[0]);
 				resolve(lang_file);
 			} else {
 				reject(null);

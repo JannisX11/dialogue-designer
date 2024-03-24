@@ -1,3 +1,4 @@
+import { loadLangFile } from "./lang_file";
 import { Project } from "./project";
 import { DialogueButton, Scene } from "./scene";
 import { IO } from "./util";
@@ -19,6 +20,15 @@ document.body.ondrop = function(event) {
 			}
 			reader.readAsText(file)
 			event.preventDefault()
+		} else if (file.name.endsWith('lang')) {
+			let reader = new FileReader()
+			reader.onloadend = function() {
+				if (typeof reader.result == 'string') {
+					loadLangFile({name: file ? file.name : '', content: reader.result});
+				}
+			}
+			reader.readAsText(file);
+			event.preventDefault();
 		}
 	}
 }

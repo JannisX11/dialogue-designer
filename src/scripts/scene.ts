@@ -6,7 +6,9 @@ export class DialogueButton {
 	text: TextField
 	commands: string
 	navigate_to: string
+	uuid: string
 	constructor() {
+		this.uuid = uuid();
 		this.text = new TextField('Button');
 		this.commands = '';
 		this.navigate_to = '';

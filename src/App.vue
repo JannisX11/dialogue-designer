@@ -52,14 +52,14 @@ import ExportDialog from './components/ExportDialog.vue'
 					<Trash :size="22" />
 				</div>
 			</ul>
-			<ul id="scene_list">
+			<ul v-draggable="[scenes, {animation: 80, handle: '.scene_handle'}]" id="scene_list" ref="scene_list">
 				<li v-for="scene in scenes" :key="scene.uuid"
 					class="scene"
 					:class="{selected: scene == selected_scene, a: true}" 
 					@click="selectScene(scene)"
 					@dblclick="renameScene(scene)"
 				>
-					<MessageSquare :size="22" />
+					<MessageSquare class="scene_handle" :size="22" />
 					<input type="text" v-model="scene.id" :readonly="scene == selected_scene && renaming_scene ? false : true" spellcheck="false" @blur="renaming_scene = false">
 				</li>
 			</ul>
@@ -87,7 +87,12 @@ import ExportDialog from './components/ExportDialog.vue'
 		</div>
 		<main>
 			<LocalizationEditor v-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
-			<SceneEditor v-else-if="selected_scene" :scene="selected_scene"></SceneEditor>
+			<SceneEditor v-else-if="selected_scene" :scene="selected_scene" @close_dialogue="last_scene = selected_scene; selected_scene = null"></SceneEditor>
+			<div v-else id="closed_dialogue_screen">
+				<span v-if="last_scene">The dialogue has been closed</span>
+				<span v-else>Create or select a scene from the sidebar</span>
+				<button v-if="last_scene" @click="reopenLastScene()">Reopen</button>
+			</div>
 		</main>
 		<nav id="mobile_nav">
 			<div @click="mobile_page = 'sidebar'">
@@ -105,6 +110,8 @@ import ExportDialog from './components/ExportDialog.vue'
 
 <script>
 
+import './scripts/keybindings'
+import { vDraggable  } from 'vue-draggable-plus'
 import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
 import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
@@ -112,6 +119,7 @@ import {reactive} from 'vue'
 import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
 import { importLangFile, LangFile } from './scripts/lang_file';
+import { addKeybinding } from './scripts/keybindings'
 
 let reactive_project = reactive(Project);
 Scene.all = reactive(Scene.all);
@@ -130,6 +138,7 @@ export default {
 			lang_files: LangFile.all,
 			project: reactive_project,
 			selected_scene: null,
+			last_scene: null,
 			renaming_scene: false,
 			page: 'start',
 			main_tab: 'scene',
@@ -174,8 +183,14 @@ export default {
 		},
 		selectScene(scene) {
 			this.selected_lang_file = null;
+			this.last_scene = this.selected_scene;
 			this.selected_scene = scene;
 			Scene.selected = scene;
+		},
+		reopenLastScene() {
+			if (this.last_scene && Scene.all.includes(this.last_scene)) {
+				this.selectScene(this.last_scene);
+			}
 		},
 		renameScene(scene) {
 			this.renaming_scene = true;
@@ -212,12 +227,25 @@ export default {
 			console.log(this)
 			vue_scope.selectScene(this);
 		}
+		addKeybinding('s', {ctrl: true}, () => {
+			this.openExportDialog();
+		})
 	}
 }
 </script>
 
 <style scoped>
 
+#closed_dialogue_screen {
+	text-align: center;
+	margin-top: calc(40vh - 50px);
+	color: var(--color-subtle);
+}
+#closed_dialogue_screen button {
+	display: block;
+	margin: auto;
+	margin-top: 12px;
+}
 .tool.export_button {
 	background-color: var(--color-accent);
 	color: black;
@@ -362,7 +390,8 @@ h3 {
 .scene {
 	height: 36px;
 	display: flex;
-	padding: 4px;
+	padding: 2px 4px;
+	align-items: center;
 }
 .scene:hover {
 	color: var(--color-highlight);
@@ -373,6 +402,7 @@ h3 {
 .scene > svg {
 	width: 36px;
 	margin-top: 2px;
+	cursor: grab;
 }
 .scene > input[type=text] {
 	background: none;

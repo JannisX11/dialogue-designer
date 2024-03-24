@@ -42,8 +42,9 @@
 import { Copy, File } from 'lucide-vue-next';
 import { Project } from '../scripts/project';
 import { Scene } from '../scripts/scene';
-import { exportDialogueFile } from '../scripts/export';
+import { compileDialogueFile, exportDialogueFile } from '../scripts/export';
 import { LangFile } from '../scripts/lang_file';
+import { compileJSON } from '../scripts/util';
 
 export default {
 	components: {
@@ -91,10 +92,14 @@ export default {
 			exportLangFile(lang_id);
 		},
 		copyDialogueFile() {
-			
+			let content = compileJSON(compileDialogueFile());
+			navigator.clipboard.writeText(content);
 		},
 		copyLangFile(lang_id) {
-			
+			let lang_file = LangFile.all.find(l => l.id == lang_id);
+			if (lang_file) {
+				navigator.clipboard.writeText(lang_file.content);
+			}
 		}
 	}
 }

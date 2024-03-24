@@ -6,7 +6,7 @@
 		<div id="dialogue" ref="dialogue" :class="{preview_mode: preview_mode}" @dblclick="preview_mode && togglePreviewMode()">
 			<div class="dialogue_title text_field" @click="setSelectedInput('npc_name')">
 				<template v-if="!preview_mode">
-					<input type="text" v-model="scene.npc_name.text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
+					<input type="text" v-model="scene.npc_name.display_text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
 					<div class="text_field_switcher" v-if="selected_input == 'npc_name'">
 						<Baseline :size="19" title="Type: Plain Text" @click="scene.npc_name.switchMode('text')" :class="{selected: scene.npc_name.mode == 'text'}" />
 						<Globe :size="19" title="Type: Translated" @click="scene.npc_name.switchMode('translate')" :class="{selected: scene.npc_name.mode == 'translate'}" />
@@ -21,42 +21,45 @@
 				</div>
 				<div class="dialogue_content text_field" @click="setSelectedInput('text')">
 					<template v-if="!preview_mode">
-						<textarea v-model="scene.text.text" spellcheck="false" :readonly="scene.text.mode == 'json'" @click="scene.text.mode == 'json' && editInPopup('text')" />
-						<div class="text_field_switcher" v-if="selected_input == 'text'">
-							<Baseline :size="19" title="Type: Plain Text" @click="scene.text.switchMode('text')" :class="{selected: scene.text.mode == 'text'}" />
-							<Globe :size="19" title="Type: Translated" @click="scene.text.switchMode('translate')" :class="{selected: scene.text.mode == 'translate'}" />
-							<Braces :size="19" title="Type: JSON Rawtext" @click="scene.text.switchMode('json'); editInPopup('text')" :class="{selected: scene.text.mode == 'json'}" />
-						</div>
+						<textarea v-model="scene.text.display_text" spellcheck="false" :readonly="scene.text.mode == 'json'" @click="scene.text.mode == 'json' && editInPopup('text')" />
 					</template>
 					<minecraft-formatting-preview v-else :text_field="scene.text" />
 				</div>
+				<div class="text_field_switcher" v-if="!preview_mode && selected_input == 'text'">
+					<Baseline :size="19" title="Type: Plain Text" @click="scene.text.switchMode('text')" :class="{selected: scene.text.mode == 'text'}" />
+					<Globe :size="19" title="Type: Translated" @click="scene.text.switchMode('translate')" :class="{selected: scene.text.mode == 'translate'}" />
+					<Braces :size="19" title="Type: JSON Rawtext" @click="scene.text.switchMode('json'); editInPopup('text')" :class="{selected: scene.text.mode == 'json'}" />
+				</div>
 			</div>
 			<div class="dialogue_buttons">
-				<div class="dialogue_button text_field"
-					v-for="(button, i) in scene.buttons" :key="button.uuid"
-					@click="clickButton(button); setSelectedInput('button'+(i+1))"
-				>
-					<template v-if="!preview_mode">
-						<input type="text" v-model="button.text.text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
-						<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
+				<ul v-draggable="[scene.buttons, {animation: 220, handle: '.button_handle'}]" ref="el">
+					<li class="dialogue_button text_field"
+						v-for="(button, i) in scene.buttons" :key="button.uuid"
+						@click="clickButton(button); setSelectedInput('button'+(i+1))"
+					>
+						<template v-if="!preview_mode">
+							<input type="text" v-model="button.text.display_text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
+							<div :id="'button'+(i+1)" :class="[selected_input]"></div>
+							<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
 
-							<div class="text_field_switcher">
-								<Baseline :size="19" title="Type: Plain Text" @click="button.text.switchMode('text')" :class="{selected: button.text.mode == 'text'}" />
-								<Globe :size="19" title="Type: Translated" @click="button.text.switchMode('translate')" :class="{selected: button.text.mode == 'translate'}" />
-								<Braces :size="19" title="Type: JSON Rawtext" @click="button.text.switchMode('json'); editInPopup('button'+(i+1))" :class="{selected: button.text.mode == 'json'}" />
+								<div class="text_field_switcher">
+									<Baseline :size="19" title="Type: Plain Text" @click="button.text.switchMode('text')" :class="{selected: button.text.mode == 'text'}" />
+									<Globe :size="19" title="Type: Translated" @click="button.text.switchMode('translate')" :class="{selected: button.text.mode == 'translate'}" />
+									<Braces :size="19" title="Type: JSON Rawtext" @click="button.text.switchMode('json'); editInPopup('button'+(i+1))" :class="{selected: button.text.mode == 'json'}" />
+								</div>
+								<div class="button_option_bar">
+									<label>Navigation:</label>
+									<select v-model="button.navigate_to">
+										<option :value="''">Close</option>
+										<option v-for="(goto_name, goto_uuid) in getAvailableScenes()" :key="goto_uuid" :value="goto_uuid">{{ goto_name }}</option>
+									</select>
+								</div>
 							</div>
-							<div class="button_option_bar">
-								<label>Navigate To:</label>
-								<select v-model="button.navigate_to">
-									<option :value="''">-</option>
-									<option v-for="(goto_name, goto_uuid) in getAvailableScenes()" :key="goto_uuid" :value="goto_uuid">{{ goto_name }}</option>
-								</select>
-							</div>
-						</div>
-					</template>
-					<minecraft-formatting-preview v-else :text_field="button.text" />
-
-				</div>
+						</template>
+						<minecraft-formatting-preview v-else :text_field="button.text" />
+						<div class="button_handle"><GripVertical :site="25" /></div>
+					</li>
+				</ul>
 				<div class="button_add_tool" v-if="scene.buttons.length < 3" @click="scene.addButton()">
 					<Plus :size="28" />
 				</div>
@@ -64,10 +67,8 @@
 		</div>
 		<div id="editor_bar_bottom">
 			<div class="preview_mode_controls" @click="togglePreviewMode()">
-				Preview
-				<ToggleLeft :size="30" v-if="preview_mode" />
-				<ToggleRight :size="30" v-else />
-				Edit
+				<div @click="preview_mode = false;" :class="{selected: preview_mode}">Preview</div>
+				<div @click="preview_mode = true;" :class="{selected: !preview_mode}">Edit</div>
 			</div>
 		</div>
 
@@ -102,7 +103,8 @@
 </template>
 
 <script>
-import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X } from 'lucide-vue-next'
+import { vDraggable  } from 'vue-draggable-plus'
+import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical } from 'lucide-vue-next'
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
 import { Scene } from './../scripts/scene'
 import { lineNumbers } from '@codemirror/view'
@@ -111,11 +113,16 @@ import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 //import {Language} from '@codemirror/language'
 import {autocompletion} from "@codemirror/autocomplete"
+import { reactive } from 'vue'
 
 let editors = {};
 
 export default {
+	directives: {
+		'draggable': vDraggable
+	},
 	components: {
+		vDraggable,
 		Codemirror,
 		MinecraftFormattingPreview,
 		ToggleLeft,
@@ -125,7 +132,8 @@ export default {
 		Baseline,
 		Globe,
 		Braces,
-		X
+		X,
+		GripVertical
 	},
 	props: {
 		scene: Scene,
@@ -163,6 +171,7 @@ export default {
 			command_value: '',
 		}
 	},
+	emits: ['close_dialogue'],
 	watch: {
 		scene(scene) {
 			if (this.command_tab == 'button1' && !scene.buttons[0]) this.command_tab = 'on_open';
@@ -171,13 +180,19 @@ export default {
 		}
 	},
 	computed: {
+		buttons() {
+			return reactive(this.scene.buttons)
+		}
 	},
 	methods: {
 		getAvailableScenes() {
-			let scenes = {};
+			let scenes = {
+				[this.scene.uuid]: 'Keep Open'
+			};
 			for (let scene of Scene.all) {
-				if (scene == this.scene) continue;
-				scenes[scene.uuid] = scene.id;
+				if (scene != this.scene) {
+					scenes[scene.uuid] = scene.id;
+				}
 			}
 			return scenes;
 		},
@@ -196,6 +211,8 @@ export default {
 				if (scene) {
 					scene.select();
 				}
+			} else {
+				this.$emit('close_dialogue')
 			}
 		},
 		switchCommandTab(tab) {
@@ -283,6 +300,7 @@ export default {
     justify-content: end;
 	border-radius: 4px;
     margin-bottom: 4px;
+	top: -2px;
 }
 .button_option_bar {
 	display: flex;
@@ -338,11 +356,22 @@ export default {
 }
 .preview_mode_controls {
 	display: flex;
-	padding: 6px;
-	gap: 5px;
-	cursor: pointer;
-	width: fit-content;
 	align-items: center;
+}
+.preview_mode_controls > div {
+	padding: 1px 6px;
+	padding-top: 4px;
+	cursor: pointer;
+	min-width: 100px;
+	text-align: center;
+	font-size: 18px;
+	border-top-right-radius: 4px;
+	border-top-left-radius: 4px;
+	background-color: var(--color-editor);
+}
+.preview_mode_controls > div.selected {
+	background-color: var(--color-accent);
+	color: black;
 }
 
 #dialogue {
@@ -355,7 +384,8 @@ export default {
 	--mcui-text-size: 20px;
 
 	max-width: 800px;
-	height: 350px;
+	min-height: 350px;
+	max-height: 424px;
 	color: var(--color-mcui-text);
 	background-color: var(--color-mcui-bg);
 	border: 6px solid var(--color-mcui-highlight);
@@ -382,6 +412,7 @@ export default {
 	text-indent: 0.3px;
 	user-select: text;
 	text-align: center;
+	flex-shrink: 0;
 }
 .dialogue_title > input {
 	text-align: center;
@@ -390,6 +421,7 @@ export default {
 	display: flex;
 	flex-grow: 1;
 	gap: 9px;
+	position: relative
 }
 .portrait_dummy {
 	width: 150px;
@@ -419,6 +451,7 @@ export default {
 	flex-grow: 1;
 	margin-bottom: 4px;
 	padding: 4px;
+	overflow-y: auto;
 }
 .dialogue_buttons {
 	display: flex;
@@ -427,6 +460,12 @@ export default {
 	padding-bottom: 8px;
 	min-height: 63px;
 	flex-wrap: wrap;
+}
+.dialogue_buttons > ul {
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+	list-style: none
 }
 
 .dialogue_button {
@@ -462,6 +501,19 @@ export default {
 .button_add_tool {
 	padding-top: 4px;
 	cursor: pointer;
+}
+.button_handle {
+	position: absolute;
+	right: 4px;
+	top: 5px;
+	width: 26px;
+	height: 38px;
+	display: none;
+	text-align: center;
+	cursor: grab;
+}
+#dialogue:not(.preview_mode) .dialogue_button:hover .button_handle {
+	display: block;
 }
 textarea,
 input[type=text] {

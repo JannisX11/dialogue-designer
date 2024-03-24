@@ -23,6 +23,21 @@ export class TextField {
 		this.translate_key = '';
 		this.json = '';
 	}
+	get display_text(): string {
+		switch (this.mode) {
+			case 'text': return this.text;
+			case 'translate': return this.translate_key;
+			case 'json': return '[JSON Component]';
+			default: return '[Unknown]'
+		}
+	}
+	set display_text(text) {
+		if (this.mode == 'text') {
+			this.text = text;
+		} else if (this.mode == 'translate') {
+			this.text = this.translate_key;
+		}
+	}
 	set(data): void {
 		if (typeof data == 'string') {
 			this.mode = 'text';
@@ -43,8 +58,10 @@ export class TextField {
 			this.text = data;
 
 		} else if (typeof data == 'object') {
+			console.log(data)
+			console.log(data.rawtext instanceof Array, data.rawtext.length == 1, typeof data.rawtext[0]?.translate == 'string', Object.keys(data.rawtext[0]).length == 1)
 
-			if (data.rawtext instanceof Array && data.rawtext.length == 1 && data.rawtext[0]?.translate && Object.keys(data.rawtext[0].translate).length == 1) {
+			if (data.rawtext instanceof Array && data.rawtext.length == 1 && typeof data.rawtext[0]?.translate == 'string' && Object.keys(data.rawtext[0]).length == 1) {
 				this.mode = 'translate';
 				this.text = data.rawtext[0].translate;
 				
@@ -85,13 +102,11 @@ export class TextField {
 		this.mode = mode;
 	}
 	getPreview(): string {
-		console.log(this)
 		if (this.mode == 'text') {
 			return this.text;
 
 		} else if (this.mode == 'translate') {
 			let a = translate(this.text);
-			console.log(a, LangFile.all);
 			return a;
 
 		} else {
