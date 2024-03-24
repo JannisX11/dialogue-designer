@@ -385,7 +385,6 @@ export default {
 
 	max-width: 800px;
 	min-height: 350px;
-	max-height: 424px;
 	color: var(--color-mcui-text);
 	background-color: var(--color-mcui-bg);
 	border: 6px solid var(--color-mcui-highlight);
@@ -421,7 +420,9 @@ export default {
 	display: flex;
 	flex-grow: 1;
 	gap: 9px;
-	position: relative
+	position: relative;
+	min-height: 0;
+	max-height: 275px;
 }
 .portrait_dummy {
 	width: 150px;
@@ -460,6 +461,7 @@ export default {
 	padding-bottom: 8px;
 	min-height: 63px;
 	flex-wrap: wrap;
+	flex-shrink: 0;
 }
 .dialogue_buttons > ul {
 	display: flex;

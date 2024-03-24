@@ -58,12 +58,13 @@ export class TextField {
 			this.text = data;
 
 		} else if (typeof data == 'object') {
-			console.log(data)
-			console.log(data.rawtext instanceof Array, data.rawtext.length == 1, typeof data.rawtext[0]?.translate == 'string', Object.keys(data.rawtext[0]).length == 1)
 
 			if (data.rawtext instanceof Array && data.rawtext.length == 1 && typeof data.rawtext[0]?.translate == 'string' && Object.keys(data.rawtext[0]).length == 1) {
 				this.mode = 'translate';
-				this.text = data.rawtext[0].translate;
+				this.translate_key = data.rawtext[0].translate;
+
+			} else if (data.rawtext instanceof Array && data.rawtext.length == 1 && typeof data.rawtext[0]?.text == 'string' && Object.keys(data.rawtext[0]).length == 1) {
+				this.text = data.rawtext[0].text;
 				
 			} else {
 				this.mode = 'json';
@@ -106,7 +107,7 @@ export class TextField {
 			return this.text;
 
 		} else if (this.mode == 'translate') {
-			let a = translate(this.text);
+			let a = translate(this.translate_key);
 			return a;
 
 		} else {

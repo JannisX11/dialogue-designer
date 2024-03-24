@@ -3,7 +3,7 @@
 
 		<h2 style="margin-bottom: 10px;">Export</h2>
 
-		<ol>
+		<ol v-if="has_scenes">
 			<li>
 				<p>Download the dialogue file and place it into the <code>dialogue</code> folder of your behavior pack. Create the folder if it doesn't already exist.</p>
 				<div class="file_download">
@@ -31,6 +31,7 @@
 				<pre><code>{{ command }}</code><div class="tool copy_tool" @click="copy(command, 'command')"><Copy :size="22" /></div></pre>
 			</li>
 		</ol>
+		<p v-else>No scenes available...</p>
 
 		<div class="button_bar">
 			<button @click="close()">Close</button>
@@ -54,6 +55,7 @@ export default {
 	data() {
 		return {
 			is_open: false,
+			has_scenes: false,
 			dialogue_file_name: '',
 			command: '',
 			lang_files: []
@@ -63,6 +65,9 @@ export default {
 		open() {
 			this.$refs.dialog.showModal();
 			this.is_open = true;
+
+			this.has_scenes = Scene.all[0] ? true : false;
+			if (!this.has_scenes) return;
 
 			this.dialogue_file_name = (Project.name||'unknown') + '.dialogue.json';
 			let first_scene_id = Project.prefix + Scene.all[0].id;
