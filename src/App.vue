@@ -12,8 +12,12 @@ import ExportDialog from './components/ExportDialog.vue'
 			<p>Create interactive NPC dialogues for Minecraft: Bedrock Edition!</p>
 			<button @click="newFile()">New Dialogue</button>
 			<button @click="importFile()">Open File</button>
-			<p>Documentation: <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue?view=minecraft-bedrock-stable#creating-npc-dialogue" target="_blank" ref="noopener">Learning Portal</a></p>
+			<p>Documentation: <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue?view=minecraft-bedrock-stable#creating-npc-dialogue" target="_blank" rel="noopener">Learning Portal</a></p>
 		</div>
+		<p class="credit_info">
+			Created by <a href="https://github.com/JannisX11" target="_blank" rel="noopener">JannisX11</a> in collaboration with <a href="https://mojang.com" target="_blank" rel="noopener">Mojang Studios</a> -
+			<a href="https://github.com/JannisX11/dialogue-designer/" target="_blank" rel="noopener">Open Source under GPL-3.0</a>
+		</p>
 	</div>
 	<div id="wrapper" v-else-if="page == 'editor'" :mobile_page="mobile_page">
 		<header>
@@ -87,7 +91,7 @@ import ExportDialog from './components/ExportDialog.vue'
 		</div>
 		<main>
 			<LocalizationEditor v-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
-			<SceneEditor v-else-if="selected_scene" :scene="selected_scene" @close_dialogue="last_scene = selected_scene; selected_scene = null"></SceneEditor>
+			<SceneEditor v-else-if="selected_scene" ref="scene_editor" :scene="selected_scene" @simulate_closing="simulateClosing()"></SceneEditor>
 			<div v-else id="closed_dialogue_screen">
 				<span v-if="last_scene">The dialogue has been closed</span>
 				<span v-else>Create or select a scene from the sidebar</span>
@@ -103,7 +107,7 @@ import ExportDialog from './components/ExportDialog.vue'
 			</div>
 		</nav>
 
-		<export-dialog ref="export_dialog"></export-dialog>
+		<export-dialog ref="export_dialog" @save="saved = true"></export-dialog>
 	</div>
 </template>
 
@@ -115,7 +119,7 @@ import { vDraggable  } from 'vue-draggable-plus'
 import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
 import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
-import {reactive} from 'vue'
+import {nextTick, reactive} from 'vue'
 import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
 import { importLangFile, LangFile } from './scripts/lang_file';
@@ -124,6 +128,8 @@ import { addKeybinding } from './scripts/keybindings'
 let reactive_project = reactive(Project);
 Scene.all = reactive(Scene.all);
 LangFile.all = reactive(LangFile.all);
+
+let simulate_close_timeout;
 
 export default {
 	components: {
@@ -137,6 +143,7 @@ export default {
 			scenes: Scene.all,
 			lang_files: LangFile.all,
 			project: reactive_project,
+			saved: false,
 			selected_scene: null,
 			last_scene: null,
 			renaming_scene: false,
@@ -171,6 +178,11 @@ export default {
 		addScene() {
 			let scene = new Scene();
 			this.selectScene(scene);
+			nextTick(() => {
+				if (this.$refs.scene_editor) {
+					this.$refs.scene_editor.preview_mode = false;
+				}
+			})
 		},
 		duplicateScene() {
 			let scene = new Scene().copy(this.selected_scene);
@@ -186,6 +198,10 @@ export default {
 			this.last_scene = this.selected_scene;
 			this.selected_scene = scene;
 			Scene.selected = scene;
+			if (simulate_close_timeout) {
+				clearTimeout(simulate_close_timeout);
+				simulate_close_timeout = null;
+			}
 		},
 		reopenLastScene() {
 			if (this.last_scene && Scene.all.includes(this.last_scene)) {
@@ -194,6 +210,13 @@ export default {
 		},
 		renameScene(scene) {
 			this.renaming_scene = true;
+		},
+		simulateClosing() {
+			this.last_scene = this.selected_scene;
+			this.selected_scene = null;
+			simulate_close_timeout = setTimeout(() => {
+				this.selectScene(this.last_scene);
+			}, 460);
 		},
 		addLanguage() {
 			let lf = new LangFile('en-US').setUniqueID();
@@ -230,6 +253,12 @@ export default {
 		addKeybinding('s', {ctrl: true}, () => {
 			this.openExportDialog();
 		})
+
+		window.onbeforeunload = (e) => {
+			if (this.scenes.length && !this.saved) {
+				return 'You have unsaved changes!'
+			}
+		}
 	}
 }
 </script>
@@ -278,6 +307,12 @@ export default {
 	display: inline-block;
 	margin-right: 8px;
 }
+.credit_info {
+	color: var(--color-subtle);
+	opacity: 0.65;
+	position: fixed;
+	bottom: -6px;
+}
 
 #wrapper {
 	height: 100%;
@@ -319,6 +354,7 @@ nav#mobile_nav {
 @media only screen and (max-width: 800px) {
 	#start_page {
 		flex-direction: column;
+		text-align: center;
 	}
 	#wrapper {
 		height: 100%;

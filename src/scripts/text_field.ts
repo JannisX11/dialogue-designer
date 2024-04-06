@@ -35,7 +35,7 @@ export class TextField {
 		if (this.mode == 'text') {
 			this.text = text;
 		} else if (this.mode == 'translate') {
-			this.text = this.translate_key;
+			this.translate_key = text;
 		}
 	}
 	set(data): void {

@@ -49,6 +49,10 @@ export class Scene {
 		this.buttons.push(new_button);
 		return new_button;
 	}
+	removeButton(button: DialogueButton): void {
+		let index = this.buttons.indexOf(button);
+		if (index >= 0) this.buttons.splice(index, 1);
+	}
 	remove(): void {
 		let index = Scene.all.indexOf(this);
 		if (index != -1) {

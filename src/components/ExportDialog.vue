@@ -52,6 +52,7 @@ export default {
 		Copy,
 		File
 	},
+	emits: ['save'],
 	data() {
 		return {
 			is_open: false,
@@ -92,6 +93,7 @@ export default {
 		},
 		downloadDialogueFile() {
 			exportDialogueFile();
+			this.$emit('save');
 		},
 		downloadLangFile(lang_id) {
 			exportLangFile(lang_id);

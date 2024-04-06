@@ -8,9 +8,11 @@
 				<template v-if="!preview_mode">
 					<input type="text" v-model="scene.npc_name.display_text" spellcheck="false" :readonly="scene.npc_name.mode == 'json'" @click="scene.npc_name.mode == 'json' && editInPopup('npc_name')" />
 					<div class="text_field_switcher" v-if="selected_input == 'npc_name'">
-						<Baseline :size="19" title="Type: Plain Text" @click="scene.npc_name.switchMode('text')" :class="{selected: scene.npc_name.mode == 'text'}" />
-						<Globe :size="19" title="Type: Translated" @click="scene.npc_name.switchMode('translate')" :class="{selected: scene.npc_name.mode == 'translate'}" />
-						<Braces :size="19" title="Type: JSON Rawtext" @click="scene.npc_name.switchMode('json'); editInPopup('npc_name')" :class="{selected: scene.npc_name.mode == 'json'}" />
+						<select :value="scene.npc_name.mode" @change="scene.npc_name.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('npc_name')">
+							<option value="text">Text</option>
+							<option value="translate">Translate</option>
+							<option value="json">Raw JSON</option>
+						</select>
 					</div>
 				</template>
 				<minecraft-formatting-preview v-else :text_field="scene.npc_name" />
@@ -26,9 +28,11 @@
 					<minecraft-formatting-preview v-else :text_field="scene.text" />
 				</div>
 				<div class="text_field_switcher" v-if="!preview_mode && selected_input == 'text'">
-					<Baseline :size="19" title="Type: Plain Text" @click="scene.text.switchMode('text')" :class="{selected: scene.text.mode == 'text'}" />
-					<Globe :size="19" title="Type: Translated" @click="scene.text.switchMode('translate')" :class="{selected: scene.text.mode == 'translate'}" />
-					<Braces :size="19" title="Type: JSON Rawtext" @click="scene.text.switchMode('json'); editInPopup('text')" :class="{selected: scene.text.mode == 'json'}" />
+					<select :value="scene.text.mode" @change="scene.text.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('text')">
+						<option value="text">Text</option>
+						<option value="translate">Translate</option>
+						<option value="json">Raw JSON</option>
+					</select>
 				</div>
 			</div>
 			<div class="dialogue_buttons">
@@ -41,11 +45,13 @@
 							<input type="text" v-model="button.text.display_text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
 							<div :id="'button'+(i+1)" :class="[selected_input]"></div>
 							<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
-
+								<div class="tool delete_button" title="Delete Button" @click="scene.removeButton(button)"><Trash :size="19" /></div>
 								<div class="text_field_switcher">
-									<Baseline :size="19" title="Type: Plain Text" @click="button.text.switchMode('text')" :class="{selected: button.text.mode == 'text'}" />
-									<Globe :size="19" title="Type: Translated" @click="button.text.switchMode('translate')" :class="{selected: button.text.mode == 'translate'}" />
-									<Braces :size="19" title="Type: JSON Rawtext" @click="button.text.switchMode('json'); editInPopup('button'+(i+1))" :class="{selected: button.text.mode == 'json'}" />
+									<select :value="button.text.mode" @change="button.text.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('button'+(i+1))">
+										<option value="text">Text</option>
+										<option value="translate">Translate</option>
+										<option value="json">Raw JSON</option>
+									</select>
 								</div>
 								<div class="button_option_bar">
 									<label>Navigation:</label>
@@ -60,15 +66,15 @@
 						<div class="button_handle"><GripVertical :site="25" /></div>
 					</li>
 				</ul>
-				<div class="button_add_tool" v-if="scene.buttons.length < 3" @click="scene.addButton()">
+				<div class="button_add_tool" v-if="!preview_mode && scene.buttons.length < 3" @click="scene.addButton()">
 					<Plus :size="28" />
 				</div>
 			</div>
 		</div>
 		<div id="editor_bar_bottom">
 			<div class="preview_mode_controls" @click="togglePreviewMode()">
-				<div @click="preview_mode = false;" :class="{selected: preview_mode}">Preview</div>
 				<div @click="preview_mode = true;" :class="{selected: !preview_mode}">Edit</div>
+				<div @click="preview_mode = false;" :class="{selected: preview_mode}">Preview</div>
 			</div>
 		</div>
 
@@ -104,7 +110,7 @@
 
 <script>
 import { vDraggable  } from 'vue-draggable-plus'
-import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical } from 'lucide-vue-next'
+import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical, Trash } from 'lucide-vue-next'
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
 import { Scene } from './../scripts/scene'
 import { lineNumbers } from '@codemirror/view'
@@ -133,7 +139,8 @@ export default {
 		Globe,
 		Braces,
 		X,
-		GripVertical
+		GripVertical,
+		Trash
 	},
 	props: {
 		scene: Scene,
@@ -171,7 +178,7 @@ export default {
 			command_value: '',
 		}
 	},
-	emits: ['close_dialogue'],
+	emits: ['simulate_closing'],
 	watch: {
 		scene(scene) {
 			if (this.command_tab == 'button1' && !scene.buttons[0]) this.command_tab = 'on_open';
@@ -212,7 +219,7 @@ export default {
 					scene.select();
 				}
 			} else {
-				this.$emit('close_dialogue')
+				this.$emit('simulate_closing')
 			}
 		},
 		switchCommandTab(tab) {
@@ -302,6 +309,11 @@ export default {
     margin-bottom: 4px;
 	top: -2px;
 }
+.delete_button {
+	float: left;
+	width: 34px;
+	margin-top: -2px;
+}
 .button_option_bar {
 	display: flex;
 	gap: 12px;
@@ -312,14 +324,13 @@ export default {
 	position: absolute;
 	display: flex;
 	height: 30px;
-	border: 1px solid var(--color-border);
 	background-color: var(--color-background);
 	color: var(--color-text);
 	top: -24px;
 	right: 0;
-	border-radius: 15px;
 	overflow: hidden;
 	z-index: 2;
+	font-size: 15px;
 }
 .text_field_switcher > svg {
 	cursor: pointer;
