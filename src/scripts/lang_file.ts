@@ -46,6 +46,9 @@ export class LangFile {
 		LangFile.all.push(this);
 	}
 	setUniqueID(): this {
+		let needs_changing = !this.id || LangFile.all.find(lang_file => lang_file.id == this.id && lang_file.uuid != this.uuid);
+		if (!needs_changing) return this;
+
 		let i = 1;
 		let id = lang_names[0];
 		while (LangFile.all.find(lf => lf != this && lf.id == id) && i < 2000) {

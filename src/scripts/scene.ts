@@ -81,6 +81,12 @@ export class Scene {
 	getSceneTag(): string {
 		return Project.prefix + this.id;
 	}
+	hasTranslations(): boolean {
+		if (this.npc_name.hasTranslations()) return true;
+		if (this.text.hasTranslations()) return true;
+		if (this.buttons.find(b => b.text.hasTranslations())) return true;
+		return false;
+	}
 	static all: Scene[] = [];
 }
 // @ts-ignore

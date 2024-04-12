@@ -131,4 +131,24 @@ export class TextField {
 			return text;
 		}
 	}
+	hasTranslations(): boolean {
+		if (this.mode == 'translate') {
+			return true;
+		} else if (this.mode == 'json') {
+			let json: any = {};
+			try {
+				json = JSON.parse(this.json);
+			} catch (err) {
+				console.error(err)
+				return false;
+			}
+			if (typeof json != 'object' || !json.rawtext) return false;
+			for (let line of json.rawtext) {
+				if (line.translate) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

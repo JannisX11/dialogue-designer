@@ -123,6 +123,12 @@ button:hover {
 	background-color: var(--color-accent);
 	color: black;
 }
+.button_bar {
+	display: flex;
+	justify-content: right;
+	gap: 8px;
+	margin-top: 8px;
+}
 h3 {
 	user-select: none;
 	color: var(--color-subtle);

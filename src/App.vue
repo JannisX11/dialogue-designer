@@ -109,6 +109,17 @@ import ExportDialog from './components/ExportDialog.vue'
 
 		<export-dialog ref="export_dialog" @save="saved = true"></export-dialog>
 	</div>
+	<dialog id="autoload_lang_dialog" ref="autoload_lang_dialog">
+
+		<h2 style="margin-bottom: 10px;">Translation Data</h2>
+
+		<p>The imported dialogue contains translated texts. Do you want to load the corresponding language (.lang) files?</p>
+
+		<div class="button_bar">
+			<button @click="$refs.autoload_lang_dialog.close(); importLanguage()">Load</button>
+			<button @click="$refs.autoload_lang_dialog.close()">Ignore</button>
+		</div>
+	</dialog>
 </template>
 
 
@@ -162,6 +173,9 @@ export default {
 		importFile() {
 			selectFileToImport().then(() => {
 				this.page = 'editor';
+				if (Scene.all.find(scene => scene.hasTranslations())) {
+					this.$refs.autoload_lang_dialog.showModal();
+				}
 			})
 		},
 		saveFile() {
@@ -286,6 +300,10 @@ export default {
 	background-color: var(--color-accent-hover);
 }
 
+#autoload_lang_dialog {
+	width: 420px;
+	height: max-content;
+}
 #start_page {
 	height: 100%;
 	display: flex;
