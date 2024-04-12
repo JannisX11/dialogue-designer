@@ -364,6 +364,7 @@ main {
 	grid-area: editor;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 }
 nav#mobile_nav {
 	grid-area: mobile_nav;

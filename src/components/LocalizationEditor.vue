@@ -3,8 +3,7 @@
 		<div id="properties_bar" v-if="language">
 			<label>{{ language.id }}</label>
 		</div>
-		<div ref="editor_anchor" :class="{has_content: language.content.length > 0}"></div>
-		<textarea v-if="language" v-model="language.content" placeholder="key=Value" />
+		<div ref="editor_anchor" class="loc_editor_anchor" :class="{has_content: language.content.length > 0}"></div>
 	</div>
 </template>
 
@@ -74,9 +73,6 @@ export default {
 <style scoped>
 
 
-</style>
-
-<style>
 #localization_editor {
 	height: 100%;
 }
@@ -98,6 +94,17 @@ export default {
 	padding: 4px 8px;
 	font-size: 17px;
 	background-color: var(--color-editor);
+}
+
+</style>
+<style>
+.loc_editor_anchor {
+	height: calc(100% - 45px);
+}
+.loc_editor_anchor > * {
+	height: 100%;
+	overflow-y: scroll;
+	overflow-y: auto;
 }
 
 </style>
