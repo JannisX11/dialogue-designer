@@ -185,3 +185,13 @@ dialog {
 .ͼ2 .cm-activeLine {
 	background-color: #a6e1ff12;
 }
+.ͼ1 .cm-cursor {
+	border-color: #aaa;
+	border-width: 2px;
+}
+.ͼ2 .cm-selection {
+	background-color: rgba(255, 248, 45, 0.317) !important;
+}
+.ͼ2 .cm-selectionBackground {
+	background-color: rgba(255, 248, 45, 0.317) !important;
+}

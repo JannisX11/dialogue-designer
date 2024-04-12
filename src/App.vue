@@ -233,7 +233,7 @@ export default {
 			}, 460);
 		},
 		addLanguage() {
-			let lf = new LangFile('en-US').setUniqueID();
+			let lf = new LangFile('en_US').setUniqueID();
 			this.selectLangFile(lf);
 		},
 		importLanguage() {
@@ -243,7 +243,7 @@ export default {
 		},
 		duplicateLanguage() {
 			let source = this.selected_lang_file;
-			let lf = new LangFile(source.id).copy(source);
+			let lf = new LangFile(source.id, source.content).copy(source);
 			this.selectLangFile(lf);
 		},
 		deleteLanguage() {

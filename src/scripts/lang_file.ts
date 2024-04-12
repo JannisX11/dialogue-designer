@@ -1,4 +1,5 @@
 import { IO, uuid } from "./util";
+import {EditorState} from "@codemirror/state"
 
 let lang_names = [
 	"en_US",
@@ -35,15 +36,19 @@ let lang_names = [
 export class LangFile {
 	uuid: string
 	id: string
-	content: string
 	modified: boolean
-	constructor(id: string) {
+	content: string
+	editor_state?: EditorState
+	constructor(id: string, content: string = 'nothing') {
 		this.id = id;
 		this.uuid = uuid();
-		this.content = '';
 		this.modified = true;
+		this.content = content;
 
 		LangFile.all.push(this);
+	}
+	getContent(): string {
+		return this.editor_state ? this.editor_state.doc.toString() : this.content;
 	}
 	setUniqueID(): this {
 		let needs_changing = !this.id || LangFile.all.find(lang_file => lang_file.id == this.id && lang_file.uuid != this.uuid);
@@ -62,7 +67,6 @@ export class LangFile {
 	copy(source: LangFile): this {
 		this.id = source.id;
 		this.setUniqueID();
-		this.content = source.content;
 		this.modified = true;
 		return this;
 	}
@@ -82,8 +86,7 @@ export class LangFile {
 }
 
 export function loadLangFile(file: {name: string, content: string}): LangFile {
-	let lang_file = new LangFile(file.name.split('.')[0]).setUniqueID();
-	lang_file.content = file.content;
+	let lang_file = new LangFile(file.name.split('.')[0], file.content).setUniqueID();
 	lang_file.modified = false;
 	return lang_file;
 }
