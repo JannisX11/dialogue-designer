@@ -41,7 +41,7 @@ import ExportDialog from './components/ExportDialog.vue'
 				<label>File Name</label>
 				<input type="text" v-model="project.name" @input="updateProjectName()">
 				<label>Prefix</label>
-				<input type="text" v-model="project.prefix" @input="project.customized_prefix = true;">
+				<input type="text" v-model="project.prefix" @input="updateProjectPrefix()">
 			</div>
 
 			<h3>Scenes</h3>
@@ -49,10 +49,10 @@ import ExportDialog from './components/ExportDialog.vue'
 				<div class="tool" @click="addScene()" title="Add Scene">
 					<Plus :size="22" />
 				</div>
-				<div class="tool" @click="duplicateScene()" title="Duplicate Scene">
+				<div class="tool" v-if="selected_scene" @click="duplicateScene()" title="Duplicate Scene">
 					<Copy :size="22" />
 				</div>
-				<div class="tool" @click="deleteScene()" title="Delete Scene">
+				<div class="tool" v-if="selected_scene" @click="deleteScene()" title="Delete Scene">
 					<Trash :size="22" />
 				</div>
 			</ul>
@@ -76,22 +76,25 @@ import ExportDialog from './components/ExportDialog.vue'
 				<div class="tool" @click="importLanguage()" title="Import Language File">
 					<FolderOpen :size="22" />
 				</div>
-				<div class="tool" @click="duplicateLanguage()" title="Duplicate Language File">
+				<div class="tool" v-if="selected_lang_file" @click="duplicateLanguage()" title="Duplicate Language File">
 					<Copy :size="22" />
 				</div>
-				<div class="tool" @click="deleteLanguage()" title="Delete Language File">
+				<div class="tool" v-if="selected_lang_file" @click="deleteLanguage()" title="Delete Language File">
 					<Trash :size="22" />
+				</div>
+				<div class="tool" v-if="selected_lang_file" @click="openLangFile(selected_lang_file)" title="Edit Language File">
+					<FilePenLine :size="22" />
 				</div>
 			</ul>
 			<ul id="lang_file_list">
-				<li class="lang_file" v-for="language in lang_files" :key="language.uuid" @click="selectLangFile(language)" :class="{selected: language == selected_lang_file}">
+				<li class="lang_file" v-for="language in lang_files" :key="language.uuid" @click="selectLangFile(language)" @dblclick="openLangFile(language)" @contextmenu="openLangFile(language)" :class="{selected: language == selected_lang_file}">
 					{{ language.id }}
 				</li>
 			</ul>
 		</div>
 		<main>
-			<LocalizationEditor v-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
-			<SceneEditor v-else-if="selected_scene" ref="scene_editor" :scene="selected_scene" @simulate_closing="simulateClosing()"></SceneEditor>
+			<SceneEditor v-if="selected_scene" ref="scene_editor" :scene="selected_scene" @simulate_closing="simulateClosing()"></SceneEditor>
+			<LocalizationEditor v-else-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
 			<div v-else id="closed_dialogue_screen">
 				<span v-if="last_scene">The dialogue has been closed</span>
 				<span v-else>Create or select a scene from the sidebar</span>
@@ -129,7 +132,7 @@ import './scripts/keybindings'
 import { vDraggable  } from 'vue-draggable-plus'
 import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
-import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
+import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePenLine, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
 import {nextTick, reactive} from 'vue'
 import { selectFileToImport, resetProject } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
@@ -147,7 +150,7 @@ export default {
 		SceneEditor,
 		LocalizationEditor,
 		ExportDialog,
-		Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePlus, List, MessageSquareCode
+		Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePenLine, FilePlus, List, MessageSquareCode
 	},
 	data() {
 		return {
@@ -182,9 +185,14 @@ export default {
 			exportDialogueFile();
 		},
 		updateProjectName() {
+			this.project.name = this.project.name.toLowerCase();
 			if (!this.project.customized_prefix) {
 				this.project.prefix = this.project.name + '_';
 			}
+		},
+		updateProjectPrefix() {
+			this.project.prefix = this.project.prefix.toLowerCase();
+			this.project.customized_prefix = true;
 		},
 		openExportDialog() {
 			this.$refs.export_dialog.open();
@@ -208,7 +216,6 @@ export default {
 			this.selectScene(Scene.all[Math.min(index, Scene.all.length-1)]);
 		},
 		selectScene(scene) {
-			this.selected_lang_file = null;
 			this.last_scene = this.selected_scene;
 			this.selected_scene = scene;
 			Scene.selected = scene;
@@ -234,17 +241,17 @@ export default {
 		},
 		addLanguage() {
 			let lf = new LangFile('en_US').setUniqueID();
-			this.selectLangFile(lf);
+			this.openLangFile(lf);
 		},
 		importLanguage() {
 			importLangFile().then(lang_file => {
-				if (lang_file) this.selected_lang_file = lang_file;
+				if (lang_file) this.openLangFile(lang_file);
 			})
 		},
 		duplicateLanguage() {
 			let source = this.selected_lang_file;
 			let lf = new LangFile(source.id, source.content).copy(source);
-			this.selectLangFile(lf);
+			this.openLangFile(lf);
 		},
 		deleteLanguage() {
 			let selected = this.selected_lang_file;
@@ -253,9 +260,21 @@ export default {
 			}
 		},
 		selectLangFile(lf) {
+			this.selected_lang_file = lf;
+			LangFile.selected = lf;
+			let old_scene = this.selected_scene;
+			this.selected_scene = null;
+			nextTick(() => {
+				this.selected_scene = old_scene;
+				if (this.selected_scene && this.$refs.scene_editor) {
+					//this.$refs.scene_editor.updateLang();
+				}
+			})
+		},
+		openLangFile(lf) {
 			this.selected_scene = null;
 			this.selected_lang_file = lf;
-			console.log(this.selected_lang_file);
+			LangFile.selected = lf;
 		}
 	},
 	mounted() {
@@ -310,6 +329,7 @@ export default {
 	justify-content: center;
 	align-items: center;
 	gap: 40px;
+	overflow: hidden;
 }
 #start_page > * {
 	flex: 0 1 300px;
@@ -491,6 +511,7 @@ h3 {
 	border-radius: 4px;
 	cursor: pointer;
 	min-width: 60px;
+	user-select: none;
 }
 .lang_file:hover {
 	background-color: var(--color-hover);

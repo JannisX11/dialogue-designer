@@ -1,7 +1,7 @@
 <template>
 	<div id="localization_editor">
 		<div id="properties_bar" v-if="language">
-			<label>{{ language.id }}</label>
+			<input id="lang_title" v-model="language.id" list="lang_id_list" />
 		</div>
 		<div ref="editor_anchor" class="loc_editor_anchor" :class="{has_content: language.content.length > 0}"></div>
 	</div>
@@ -10,7 +10,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X } from 'lucide-vue-next'
-import { LangFile } from '../scripts/lang_file'
+import { LangFile, lang_names } from '../scripts/lang_file'
 
 import { lineNumbers, keymap, ViewUpdate } from '@codemirror/view'
 import { json } from '@codemirror/lang-json'
@@ -19,12 +19,15 @@ import {EditorView, basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {tags} from "@lezer/highlight"
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
+import { createDatalist } from '../scripts/util'
 
 const highlight_style = HighlightStyle.define([
 	{tag: tags.brace, class: 'test'},
   {tag: tags.keyword, color: "#fc6"},
   {tag: tags.comment, color: "#f5d", fontStyle: "italic"}
 ])
+
+createDatalist('lang_id_list', lang_names);
 
 export default {
 	components: {
@@ -39,6 +42,7 @@ export default {
 	},
 	data() {
 		return {
+			editing_name: false,
 			editor: null
 		}
 	},
@@ -72,19 +76,26 @@ export default {
 
 <style scoped>
 
-
+#lang_title {
+	background: none;
+	border: none;
+	font-size: 22px;
+	height: 100%;
+	width: 140px;
+	padding: 4px 12px;
+}
 #localization_editor {
 	height: 100%;
 }
-#localization_editor > #properties_bar {
+#properties_bar {
 	height: 44px;
 }
-#localization_editor > #properties_bar > label {
+#properties_bar > label {
 	display: inline-block;
 	font-size: 23px;
 	padding: 4px 8px;
 }
-#localization_editor textarea {
+textarea {
 	height: calc(100% - 56px);
 	border: none;
 	border-top: 1px solid var(--color-border);

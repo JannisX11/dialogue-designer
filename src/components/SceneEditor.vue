@@ -35,38 +35,36 @@
 					</select>
 				</div>
 			</div>
-			<div class="dialogue_buttons">
-				<ul v-draggable="[scene.buttons, {animation: 220, handle: '.button_handle'}]" ref="el">
-					<li class="dialogue_button text_field"
-						v-for="(button, i) in scene.buttons" :key="button.uuid"
-						@click="clickButton(button); setSelectedInput('button'+(i+1))"
-					>
-						<template v-if="!preview_mode">
-							<input type="text" v-model="button.text.display_text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
-							<div :id="'button'+(i+1)" :class="[selected_input]"></div>
-							<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
-								<div class="tool delete_button" title="Delete Button" @click="scene.removeButton(button)"><Trash :size="19" /></div>
-								<div class="text_field_switcher">
-									<select :value="button.text.mode" @change="button.text.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('button'+(i+1))">
-										<option value="text">Text</option>
-										<option value="translate">Translate</option>
-										<option value="json">Raw JSON</option>
-									</select>
-								</div>
-								<div class="button_option_bar">
-									<label>Navigation:</label>
-									<select v-model="button.navigate_to">
-										<option :value="''">Close</option>
-										<option v-for="(goto_name, goto_uuid) in getAvailableScenes()" :key="goto_uuid" :value="goto_uuid">{{ goto_name }}</option>
-									</select>
-								</div>
+			<div class="dialogue_buttons" v-draggable="[scene.buttons, {animation: 220, handle: '.button_handle'}]" ref="el">
+				<div class="dialogue_button text_field"
+					v-for="(button, i) in scene.buttons" :key="button.uuid"
+					@click="clickButton(button); setSelectedInput('button'+(i+1))"
+				>
+					<template v-if="!preview_mode">
+						<input type="text" v-model="button.text.display_text" spellcheck="false" :readonly="button.text.mode == 'json'" @click="button.text.mode == 'json' && editInPopup('button'+(i+1))" />
+						<div :id="'button'+(i+1)" :class="[selected_input]"></div>
+						<div class="button_edit_overlay" v-if="selected_input == 'button'+(i+1)">
+							<div class="button_option_bar">
+								<label>Navigation:</label>
+								<select v-model="button.navigate_to">
+									<option :value="''">Close</option>
+									<option v-for="(goto_name, goto_uuid) in getAvailableScenes()" :key="goto_uuid" :value="goto_uuid">{{ goto_name }}</option>
+								</select>
 							</div>
-						</template>
-						<minecraft-formatting-preview v-else :text_field="button.text" />
-						<div class="button_handle"><GripVertical :site="25" /></div>
-					</li>
-				</ul>
-				<div class="button_add_tool" v-if="!preview_mode && scene.buttons.length < 3" @click="scene.addButton()">
+							<div class="tool delete_button" title="Delete Button" @click="scene.removeButton(button)"><Trash :size="19" /></div>
+							<div class="text_field_switcher">
+								<select :value="button.text.mode" @change="button.text.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('button'+(i+1))">
+									<option value="text">Text</option>
+									<option value="translate">Translate</option>
+									<option value="json">Raw JSON</option>
+								</select>
+							</div>
+						</div>
+					</template>
+					<minecraft-formatting-preview v-else :text_field="button.text" />
+					<div class="button_handle"><GripVertical :site="25" /></div>
+				</div>
+				<div class="button_add_tool" v-if="!preview_mode && scene.buttons.length < 6" @click="scene.addButton()">
 					<Plus :size="28" />
 				</div>
 			</div>
@@ -86,7 +84,8 @@
 				v-model="popup_value"
 				@input="changePopupValue($event)"
 			/>
-			<p v-if="popup_error">{{ popup_error }}</p>
+			<p v-if="popup_error" class="json_error">{{ popup_error }}</p>
+			<button @click="closePopup()">Confirm</button>
 		</dialog>
 	</div>
 
@@ -98,6 +97,9 @@
 			<div class="command_tab" @click="switchCommandTab('button1')" :class="{open: command_tab == 'button1'}" v-if="scene.buttons[0]">Button 1</div>
 			<div class="command_tab" @click="switchCommandTab('button2')" :class="{open: command_tab == 'button2'}" v-if="scene.buttons[1]">Button 2</div>
 			<div class="command_tab" @click="switchCommandTab('button3')" :class="{open: command_tab == 'button3'}" v-if="scene.buttons[2]">Button 3</div>
+			<div class="command_tab" @click="switchCommandTab('button4')" :class="{open: command_tab == 'button4'}" v-if="scene.buttons[3]">Button 4</div>
+			<div class="command_tab" @click="switchCommandTab('button5')" :class="{open: command_tab == 'button5'}" v-if="scene.buttons[4]">Button 5</div>
+			<div class="command_tab" @click="switchCommandTab('button6')" :class="{open: command_tab == 'button6'}" v-if="scene.buttons[5]">Button 6</div>
 		</div>
 		
 		<textarea
@@ -119,7 +121,7 @@ import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 //import {Language} from '@codemirror/language'
 import {autocompletion} from "@codemirror/autocomplete"
-import { reactive } from 'vue'
+import { getCurrentInstance, reactive } from 'vue'
 
 let editors = {};
 
@@ -184,6 +186,9 @@ export default {
 			if (this.command_tab == 'button1' && !scene.buttons[0]) this.command_tab = 'on_open';
 			if (this.command_tab == 'button2' && !scene.buttons[1]) this.command_tab = 'on_open';
 			if (this.command_tab == 'button3' && !scene.buttons[2]) this.command_tab = 'on_open';
+			if (this.command_tab == 'button4' && !scene.buttons[3]) this.command_tab = 'on_open';
+			if (this.command_tab == 'button5' && !scene.buttons[4]) this.command_tab = 'on_open';
+			if (this.command_tab == 'button6' && !scene.buttons[5]) this.command_tab = 'on_open';
 		}
 	},
 	computed: {
@@ -205,6 +210,9 @@ export default {
 		},
 		setSelectedInput(id) {
 			if (this.preview_mode) return;
+			if (id.startsWith('button')) {
+				this.switchCommandTab(id);
+			}
 			this.selected_input = id;
 		},
 		togglePreviewMode() {
@@ -233,6 +241,9 @@ export default {
 				case 'button1': this.command_value = this.scene.buttons[0]?.commands; break;
 				case 'button2': this.command_value = this.scene.buttons[1]?.commands; break;
 				case 'button3': this.command_value = this.scene.buttons[2]?.commands; break;
+				case 'button4': this.command_value = this.scene.buttons[3]?.commands; break;
+				case 'button5': this.command_value = this.scene.buttons[4]?.commands; break;
+				case 'button6': this.command_value = this.scene.buttons[5]?.commands; break;
 			}
 			if (!this.command_value) this.command_value = '';
 		},
@@ -259,6 +270,9 @@ export default {
 				case 'button1': return this.scene.buttons[0].text.json;
 				case 'button2': return this.scene.buttons[1].text.json;
 				case 'button3': return this.scene.buttons[2].text.json;
+				case 'button4': return this.scene.buttons[3].text.json;
+				case 'button5': return this.scene.buttons[4].text.json;
+				case 'button6': return this.scene.buttons[5].text.json;
 			}
 		},
 		changeCommand(event) {
@@ -269,6 +283,9 @@ export default {
 				case 'button1': {let button = this.scene.buttons[0]; if (button) {button.commands = value;}} break;
 				case 'button2': {let button = this.scene.buttons[1]; if (button) {button.commands = value;}} break;
 				case 'button3': {let button = this.scene.buttons[2]; if (button) {button.commands = value;}} break;
+				case 'button4': {let button = this.scene.buttons[3]; if (button) {button.commands = value;}} break;
+				case 'button5': {let button = this.scene.buttons[4]; if (button) {button.commands = value;}} break;
+				case 'button6': {let button = this.scene.buttons[5]; if (button) {button.commands = value;}} break;
 			}
 		},
 		changePopupValue(event) {
@@ -279,7 +296,14 @@ export default {
 				case 'button1': this.scene.text.json = value; break;
 				case 'button2': this.scene.text.json = value; break;
 				case 'button3': this.scene.text.json = value; break;
+				case 'button4': this.scene.text.json = value; break;
+				case 'button5': this.scene.text.json = value; break;
+				case 'button6': this.scene.text.json = value; break;
 			}
+		},
+		updateLang() {
+			//console.log(this)
+			//this.$forceUpdate()
 		}
 	}
 }
@@ -317,6 +341,7 @@ export default {
 .button_option_bar {
 	display: flex;
 	gap: 12px;
+	margin-bottom: 8px;
 	align-items: center;
 	white-space: nowrap;
 }
@@ -473,12 +498,9 @@ export default {
 	min-height: 63px;
 	flex-wrap: wrap;
 	flex-shrink: 0;
+	gap: 15px;
 }
 .dialogue_buttons > ul {
-	display: flex;
-	gap: 15px;
-	flex-wrap: wrap;
-	list-style: none
 }
 
 .dialogue_button {
@@ -490,7 +512,8 @@ export default {
 	outline: 2px solid black;
 	color: var(--color-mcui-text-button);
 	height: 40px;
-	min-width: 240px;
+	width: 226px;
+	min-width: 226px;
 	padding: 2px;
 	text-align: center;
 	cursor: pointer;
@@ -569,7 +592,7 @@ input[type=text] {
 }
 
 #editor_popup {
-	width: 680px;
+	width: 750px;
 	height: 500px;
 }
 
@@ -583,7 +606,14 @@ textarea {
 	background-color: var(--color-editor);
 }
 #editor_popup > textarea {
-	height: calc(100% - 50px);
+	height: calc(100% - 74px);
+}
+#editor_popup .json_error  {
+	float: left;
+	color: #e8475f;
+}
+#editor_popup button {
+	float: right
 }
 
 </style>

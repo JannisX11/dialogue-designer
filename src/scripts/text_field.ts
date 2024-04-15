@@ -4,6 +4,10 @@ import { compileJSON } from "./util"
 type TextFieldMode = 'text' | 'translate' | 'json';
 
 function translate(key: string): string {
+	if (LangFile.selected) {
+		let result = LangFile.selected.getTranslation(key);
+		if (result) return result;
+	}
 	for (let language of LangFile.all) {
 		let result = language.getTranslation(key);
 		if (result) return result;

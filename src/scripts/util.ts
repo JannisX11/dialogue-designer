@@ -102,6 +102,16 @@ function calculateOffset(element) {
 function isFirefox(): boolean {
 	return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 }
+export function createDatalist(id: string, list: string[]) {
+	let datalist = document.createElement('datalist');
+	datalist.id = id;
+	list.forEach(item => {
+		let opt = document.createElement('option');
+		opt.value = item;
+		datalist.append(opt);
+	})
+	document.body.append(datalist);
+}
 
 interface ImportOptions {
 	extensions?: string[]

@@ -1,7 +1,7 @@
 import { IO, uuid } from "./util";
 import {EditorState} from "@codemirror/state"
 
-let lang_names = [
+const lang_names = [
 	"en_US",
 	"de_DE",
 	"fr_FR",
@@ -32,6 +32,7 @@ let lang_names = [
 	"tr_TR",
 	"uk_UA"
 ];
+export {lang_names};
 
 export class LangFile {
 	uuid: string
@@ -39,7 +40,7 @@ export class LangFile {
 	modified: boolean
 	content: string
 	editor_state?: EditorState
-	constructor(id: string, content: string = 'nothing') {
+	constructor(id: string, content: string = '') {
 		this.id = id;
 		this.uuid = uuid();
 		this.modified = true;
@@ -83,6 +84,7 @@ export class LangFile {
 	}
 
 	static all: LangFile[] = [];
+	static selected: LangFile | null;
 }
 
 export function loadLangFile(file: {name: string, content: string}): LangFile {
