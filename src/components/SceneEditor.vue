@@ -253,6 +253,7 @@ export default {
 			this.$refs.editor_popup.showModal();
 		},
 		closePopup() {
+			let error_before = !!this.popup_error;
 			this.popup_error = '';
 			try {
 				JSON.parse(this.getPopupEditorValue());
@@ -261,6 +262,8 @@ export default {
 			}
 			if (!this.popup_error) {
 				this.$refs.editor_popup.close();
+			} else if (error_before) {
+				window.alert('Please fix all JSON issues before closing the Raw JSON editor!')
 			}
 		},
 		getPopupEditorValue() {

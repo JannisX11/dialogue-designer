@@ -170,16 +170,26 @@ export default {
 	},
 	methods: {
 		newFile() {
-			resetProject();
-			this.page = 'editor';
+			if (this.saved == false && this.scenes.length && !window.confirm('Are you sure you want to create a new file? You will lose all unsaved changes.')) return;
+			this.resetProject();
 		},
 		importFile() {
+			if (this.saved == false && this.scenes.length && !window.confirm('Are you sure you want to load another file? You will lose all unsaved changes.')) return;
+			this.resetProject();
 			selectFileToImport().then(() => {
 				this.page = 'editor';
 				if (Scene.all.find(scene => scene.hasTranslations())) {
 					this.$refs.autoload_lang_dialog.showModal();
 				}
 			})
+		},
+		resetProject() {
+			resetProject();
+			this.selected_scene = null;
+			this.last_scene = null;
+			this.renaming_scene = false;
+			this.selected_lang_file = null;
+			this.page = 'editor';
 		},
 		saveFile() {
 			exportDialogueFile();

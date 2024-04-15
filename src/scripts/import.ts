@@ -1,4 +1,4 @@
-import { loadLangFile } from "./lang_file";
+import { LangFile, loadLangFile } from "./lang_file";
 import { Project } from "./project";
 import { DialogueButton, Scene } from "./scene";
 import { IO } from "./util";
@@ -74,6 +74,8 @@ export function resetProject() {
 	Project.prefix = '';
 	Project.customized_prefix = false;
 	Scene.all.splice(0);
+	LangFile.all.splice(0);
+	LangFile.selected = null;
 }
 
 
