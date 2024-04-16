@@ -15,23 +15,35 @@ function translate(key: string): string {
 	return key;
 }
 
+function displayJSONSample(input: string, limit: number = 100): string {
+	try {
+		input = JSON.stringify(JSON.parse(input));
+	} catch(err) {
+		input = input.replace(/[\s\n\r]+/g, '');
+	}
+	let string = input.length > limit ? input.substring(0, limit) + '...' : input;
+	return string;
+}
+
 export class TextField {
 	mode: TextFieldMode
 	text: string
 	translate_key: string
 	json: string
+	is_button: boolean
 
-	constructor(start_text = '') {
+	constructor(start_text = '', is_button?: boolean) {
 		this.mode = 'text';
 		this.text = start_text;
 		this.translate_key = '';
 		this.json = '';
+		this.is_button = is_button == true;
 	}
 	get display_text(): string {
 		switch (this.mode) {
 			case 'text': return this.text;
 			case 'translate': return this.translate_key;
-			case 'json': return '[JSON Component]';
+			case 'json': return displayJSONSample(this.json, this.is_button ? 16 : 120);
 			default: return '[Unknown]'
 		}
 	}

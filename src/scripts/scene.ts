@@ -9,7 +9,7 @@ export class DialogueButton {
 	uuid: string
 	constructor() {
 		this.uuid = uuid();
-		this.text = new TextField('Button');
+		this.text = new TextField('Button', true);
 		this.commands = '';
 		this.navigate_to = '';
 	}

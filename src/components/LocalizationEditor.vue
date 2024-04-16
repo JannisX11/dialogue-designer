@@ -11,6 +11,7 @@
 import Vue from 'vue'
 import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X } from 'lucide-vue-next'
 import { LangFile, lang_names } from '../scripts/lang_file'
+import { createDatalist } from '../scripts/util'
 
 import { lineNumbers, keymap, ViewUpdate } from '@codemirror/view'
 import { json } from '@codemirror/lang-json'
@@ -19,13 +20,6 @@ import {EditorView, basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {tags} from "@lezer/highlight"
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { createDatalist } from '../scripts/util'
-
-const highlight_style = HighlightStyle.define([
-	{tag: tags.brace, class: 'test'},
-  {tag: tags.keyword, color: "#fc6"},
-  {tag: tags.comment, color: "#f5d", fontStyle: "italic"}
-])
 
 createDatalist('lang_id_list', lang_names);
 
