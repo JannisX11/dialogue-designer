@@ -76,17 +76,7 @@
 			</div>
 		</div>
 
-		<dialog id="editor_popup" ref="editor_popup">
-			<div class="editor_popup_bar">
-				<X :size="20" @click="closePopup()" />
-			</div>
-			<textarea
-				v-model="popup_value"
-				@input="changePopupValue($event)"
-			/>
-			<p v-if="popup_error" class="json_error">{{ popup_error }}</p>
-			<button @click="closePopup()">Confirm</button>
-		</dialog>
+		<rawtext-exitor ref="editor_popup"></rawtext-exitor>
 	</div>
 
 	<div id="properties">
@@ -114,6 +104,7 @@
 import { vDraggable  } from 'vue-draggable-plus'
 import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical, Trash } from 'lucide-vue-next'
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
+import RawtextExitor from './RawtextExitor.vue'
 import { Scene } from './../scripts/scene'
 import { lineNumbers } from '@codemirror/view'
 import Codemirror from 'vue-codemirror6'
@@ -121,7 +112,7 @@ import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 //import {Language} from '@codemirror/language'
 import {autocompletion} from "@codemirror/autocomplete"
-import { getCurrentInstance, reactive } from 'vue'
+import { reactive } from 'vue'
 
 let editors = {};
 
@@ -133,6 +124,7 @@ export default {
 		vDraggable,
 		Codemirror,
 		MinecraftFormattingPreview,
+		RawtextExitor,
 		ToggleLeft,
 		ToggleRight,
 		User,
@@ -174,9 +166,6 @@ export default {
 			preview_mode: true,
 			selected_input: '',
 			command_tab: 'on_open',
-			popup_edit_key: '',
-			popup_error: '',
-			popup_value: '',
 			command_value: '',
 		}
 	},
@@ -248,35 +237,19 @@ export default {
 			if (!this.command_value) this.command_value = '';
 		},
 		editInPopup(key) {
-			this.popup_edit_key = key;
-			this.popup_value = this.getPopupEditorValue();
-			this.$refs.editor_popup.showModal();
-		},
-		closePopup() {
-			let error_before = !!this.popup_error;
-			this.popup_error = '';
-			try {
-				JSON.parse(this.getPopupEditorValue());
-			} catch (err) {
-				this.popup_error = err.toString();
+			let text_field;
+			switch (key) {
+				case 'npc_name': text_field = this.scene.npc_name; break;
+				case 'text': text_field = this.scene.text; break;
+				case 'button1': text_field = this.scene.buttons[0].text; break;
+				case 'button2': text_field = this.scene.buttons[1].text; break;
+				case 'button3': text_field = this.scene.buttons[2].text; break;
+				case 'button4': text_field = this.scene.buttons[3].text; break;
+				case 'button5': text_field = this.scene.buttons[4].text; break;
+				case 'button6': text_field = this.scene.buttons[5].text; break;
 			}
-			if (!this.popup_error) {
-				this.$refs.editor_popup.close();
-			} else if (error_before) {
-				window.alert('Please fix all JSON issues before closing the Raw JSON editor!')
-			}
-		},
-		getPopupEditorValue() {
-			switch (this.popup_edit_key) {
-				case 'npc_name': return this.scene.npc_name.json;
-				case 'text': return this.scene.text.json;
-				case 'button1': return this.scene.buttons[0].text.json;
-				case 'button2': return this.scene.buttons[1].text.json;
-				case 'button3': return this.scene.buttons[2].text.json;
-				case 'button4': return this.scene.buttons[3].text.json;
-				case 'button5': return this.scene.buttons[4].text.json;
-				case 'button6': return this.scene.buttons[5].text.json;
-			}
+			this.$refs.editor_popup.text_field = text_field;
+			this.$refs.editor_popup.open();
 		},
 		changeCommand(event) {
 			let value = this.command_value;
@@ -289,19 +262,6 @@ export default {
 				case 'button4': {let button = this.scene.buttons[3]; if (button) {button.commands = value;}} break;
 				case 'button5': {let button = this.scene.buttons[4]; if (button) {button.commands = value;}} break;
 				case 'button6': {let button = this.scene.buttons[5]; if (button) {button.commands = value;}} break;
-			}
-		},
-		changePopupValue(event) {
-			let value = this.popup_value;
-			switch (this.popup_edit_key) {
-				case 'npc_name': this.scene.npc_name.json = value; break;
-				case 'text': this.scene.text.json = value; break;
-				case 'button1': this.scene.text.json = value; break;
-				case 'button2': this.scene.text.json = value; break;
-				case 'button3': this.scene.text.json = value; break;
-				case 'button4': this.scene.text.json = value; break;
-				case 'button5': this.scene.text.json = value; break;
-				case 'button6': this.scene.text.json = value; break;
 			}
 		},
 		updateLang() {
@@ -594,29 +554,17 @@ input[type=text] {
 	color: var(--color-subtle);
 }
 
-#editor_popup {
-	width: 750px;
-	height: 500px;
-}
-
 textarea {
 	font-family: Consolas, monospace;
 	padding: 4px 8px;
 	font-size: 17px;
 	color: inherit;
 }
-#properties textarea, #editor_popup textarea {
+#properties textarea {
 	background-color: var(--color-editor);
 }
-#editor_popup > textarea {
-	height: calc(100% - 74px);
-}
-#editor_popup .json_error  {
-	float: left;
-	color: #e8475f;
-}
-#editor_popup button {
-	float: right
+#properties .ͼ1 {
+	flex-grow: 1;
 }
 
 </style>
@@ -624,12 +572,5 @@ textarea {
 <style>
 #properties .ͼ1 {
 	flex-grow: 1;
-}
-#editor_popup .vue-codemirror {
-	height: calc(100% - 58px);
-	border: 1px solid var(--color-border);
-}
-#editor_popup .ͼ1 {
-	height: 100%;
 }
 </style>
