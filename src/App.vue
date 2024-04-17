@@ -93,12 +93,14 @@ import ExportDialog from './components/ExportDialog.vue'
 			</ul>
 		</div>
 		<main>
-			<SceneEditor v-if="selected_scene" ref="scene_editor" :scene="selected_scene" @simulate_closing="simulateClosing()"></SceneEditor>
+			<div v-if="simulate_closing" id="closed_dialogue_screen">
+				<span>The dialogue has been closed</span>
+				<button @click="reopenLastScene()">Reopen</button>
+			</div>
+			<SceneEditor v-else-if="selected_scene" ref="scene_editor" :scene="selected_scene" @simulate_closing="simulateClosing()"></SceneEditor>
 			<LocalizationEditor v-else-if="selected_lang_file" :language="selected_lang_file"></LocalizationEditor>
 			<div v-else id="closed_dialogue_screen">
-				<span v-if="last_scene">The dialogue has been closed</span>
-				<span v-else>Create or select a scene from the sidebar</span>
-				<button v-if="last_scene" @click="reopenLastScene()">Reopen</button>
+				<span>Create or select a scene from the sidebar</span>
 			</div>
 		</main>
 		<nav id="mobile_nav">
@@ -161,6 +163,7 @@ export default {
 			selected_scene: null,
 			last_scene: null,
 			renaming_scene: false,
+			simulate_closing: false,
 			page: 'start',
 			main_tab: 'scene',
 			languages: Project.languages,
@@ -229,10 +232,7 @@ export default {
 			this.last_scene = this.selected_scene;
 			this.selected_scene = scene;
 			Scene.selected = scene;
-			if (simulate_close_timeout) {
-				clearTimeout(simulate_close_timeout);
-				simulate_close_timeout = null;
-			}
+			this.simulate_closing = false;
 		},
 		reopenLastScene() {
 			if (this.last_scene && Scene.all.includes(this.last_scene)) {
@@ -243,10 +243,9 @@ export default {
 			this.renaming_scene = true;
 		},
 		simulateClosing() {
-			this.last_scene = this.selected_scene;
-			this.selected_scene = null;
+			this.simulate_closing = true;
 			simulate_close_timeout = setTimeout(() => {
-				this.selectScene(this.last_scene);
+				this.simulate_closing = false;
 			}, 460);
 		},
 		addLanguage() {

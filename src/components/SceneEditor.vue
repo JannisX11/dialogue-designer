@@ -178,6 +178,7 @@ export default {
 			if (this.command_tab == 'button4' && !scene.buttons[3]) this.command_tab = 'on_open';
 			if (this.command_tab == 'button5' && !scene.buttons[4]) this.command_tab = 'on_open';
 			if (this.command_tab == 'button6' && !scene.buttons[5]) this.command_tab = 'on_open';
+			this.switchCommandTab(this.command_tab);
 		}
 	},
 	computed: {
