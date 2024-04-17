@@ -109,14 +109,11 @@ export default defineComponent({
 		}
 		return data;
 	},
-	watch: {
-		text_field(text_field) {
-			if (text_field) this.setupEditor(text_field);
-		}
-	},
 	methods: {
-		open() {
+		open(text_field: TextField) {
 			this.$refs.dialog.showModal();
+			this.text_field = text_field;
+			this.setupEditor(text_field);
 		},
 		close() {
 			let error_before = !!this.popup_error;
@@ -129,6 +126,8 @@ export default defineComponent({
 			}
 			if (!this.popup_error) {
 				this.$refs.dialog.close();
+					this.text_field = null;
+
 			} else if (error_before) {
 				window.alert('Please fix all JSON issues before closing the Raw JSON editor!')
 			}

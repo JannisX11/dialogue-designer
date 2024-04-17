@@ -13,6 +13,11 @@ export class DialogueButton {
 		this.commands = '';
 		this.navigate_to = '';
 	}
+	copy(button: DialogueButton): void {
+		this.text.copy(button.text);
+		this.commands = button.commands;
+		this.navigate_to = button.navigate_to;
+	}
 }
 
 export class Scene {
@@ -65,7 +70,13 @@ export class Scene {
 		this.makeNameUnique();
 		this.on_open_commands = scene.on_open_commands;
 		this.on_close_commands = scene.on_close_commands;
-		// Todo: text, name, buttons
+		this.text.copy(scene.text);
+		this.npc_name.copy(scene.npc_name);
+		this.buttons.splice(0);
+		for (let button of scene.buttons) {
+			let new_button = this.addButton();
+			new_button.copy(button);
+		}
 
 		return this;
 	}

@@ -221,9 +221,6 @@ export default {
 		},
 		switchCommandTab(tab) {
 			this.command_tab = tab;
-			//editors.commands.state.selection.mainIndex = 0;
-			//editors.commands.state.selection.ranges[0].from = 0;
-			//editors.commands.state.selection.ranges[0].to = 0;
 			switch (this.command_tab) {
 				case 'on_open': this.command_value = this.scene.on_open_commands; break;
 				case 'on_close': this.command_value = this.scene.on_close_commands; break;
@@ -248,8 +245,7 @@ export default {
 				case 'button5': text_field = this.scene.buttons[4].text; break;
 				case 'button6': text_field = this.scene.buttons[5].text; break;
 			}
-			this.$refs.editor_popup.text_field = text_field;
-			this.$refs.editor_popup.open();
+			this.$refs.editor_popup.open(text_field);
 		},
 		changeCommand(event) {
 			let value = this.command_value;

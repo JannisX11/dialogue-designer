@@ -64,6 +64,12 @@ export class TextField {
 			this.json = compileJSON(data);
 		}
 	}
+	copy(text_field: TextField): void {
+		this.mode = text_field.mode;
+		this.text = text_field.text;
+		this.translate_key = text_field.translate_key;
+		this.json = text_field.json;
+	}
 	fromJSON(data): void {
 		this.mode = 'text';
 		this.text = '';
