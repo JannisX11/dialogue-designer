@@ -104,10 +104,10 @@ import ExportDialog from './components/ExportDialog.vue'
 			</div>
 		</main>
 		<nav id="mobile_nav">
-			<div @click="mobile_page = 'sidebar'">
+			<div @click="mobile_page = 'sidebar'" :class="{selected: mobile_page == 'sidebar'}">
 				<List />
 			</div>
-			<div @click="mobile_page = 'editor'">
+			<div @click="mobile_page = 'editor'" :class="{selected: mobile_page == 'editor'}">
 				<MessageSquareCode />
 			</div>
 		</nav>
@@ -233,6 +233,7 @@ export default {
 			this.selected_scene = scene;
 			Scene.selected = scene;
 			this.simulate_closing = false;
+			this.mobile_page = 'editor';
 		},
 		reopenLastScene() {
 			if (this.last_scene && Scene.all.includes(this.last_scene)) {
@@ -284,6 +285,7 @@ export default {
 			this.selected_scene = null;
 			this.selected_lang_file = lf;
 			LangFile.selected = lf;
+			this.mobile_page = 'editor';
 		}
 	},
 	mounted() {
@@ -405,6 +407,7 @@ main {
 	grid-area: editor;
 	display: flex;
 	flex-direction: column;
+	flex-grow: 1;
 	overflow: hidden;
 }
 nav#mobile_nav {
@@ -416,6 +419,7 @@ nav#mobile_nav {
 		flex-direction: column;
 		text-align: center;
 		gap: 5px;
+		padding-bottom: 100px;
 	}
 	header {
 		gap: 4px;;
@@ -423,26 +427,16 @@ nav#mobile_nav {
 	}
 	#wrapper {
 		height: 100%;
-		display: grid;
-		grid-template-rows: 40px auto 44px;
-		grid-template-columns: auto;
+		display: flex;
+		flex-direction: column;
 	}
-	#wrapper[mobile_page="sidebar"] {
-		grid-template-areas: 
-			"header"
-			"sidebar"
-			"mobile_nav";
+	#sidebar {
+		flex-grow: 1;
 	}
 	#wrapper:not([mobile_page="sidebar"]) #sidebar {
 		display: none;
 	}
-	#wrapper[mobile_page="editor"] {
-		grid-template-areas: 
-			"header"
-			"editor"
-			"mobile_nav";
-	}
-	#wrapper:not([mobile_page="editor"]) #main {
+	#wrapper:not([mobile_page="editor"]) main {
 		display: none;
 	}
 	nav#mobile_nav {
@@ -452,6 +446,10 @@ nav#mobile_nav {
 		flex-grow: 1;
 		text-align: center;
 		padding-top: 8px;
+		color: var(--color-subtle);
+	}
+	nav#mobile_nav > div.selected {
+		color: var(--color-highlight);
 	}
 }
 

@@ -2,35 +2,35 @@ import { IO, uuid } from "./util";
 import {EditorState} from "@codemirror/state"
 
 const lang_names = [
-	"en_US",
-	"de_DE",
-	"fr_FR",
-	"it_IT",
-	"pt_BR",
-	"ru_RU",
-	"zh_CN",
-	"fr_CA",
-	"zh_TW",
-	"es_MX",
-	"es_ES",
-	"pt_PT",
-	"en_GB",
-	"ko_KR",
-	"ja_JP",
-	"nl_NL",
-	"bg_BG",
-	"cs_CZ",
-	"da_DK",
-	"el_GR",
-	"fi_FI",
-	"hu_HU",
-	"id_ID",
-	"nb_NO",
-	"pl_PL",
-	"sk_SK",
-	"sv_SE",
-	"tr_TR",
-	"uk_UA"
+	{key: "en_US", label: 'English (US)'},
+	{key: "de_DE", label: 'German'},
+	{key: "fr_FR", label: 'French'},
+	{key: "it_IT", label: 'Italian'},
+	{key: "pt_BR", label: 'Portuguese (Brazil)'},
+	{key: "ru_RU", label: 'Russian'},
+	{key: "zh_CN", label: 'Chinese'},
+	{key: "fr_CA", label: 'French (Canadian)'},
+	{key: "zh_TW", label: 'Chinese (Taiwan)'},
+	{key: "es_MX", label: 'Spanish (Mexico)'},
+	{key: "es_ES", label: 'Spanish (Spain)'},
+	{key: "pt_PT", label: 'Portuguese (Portugal)'},
+	{key: "en_GB", label: 'English (UK)'},
+	{key: "ko_KR", label: 'Korean'},
+	{key: "ja_JP", label: 'Japanese'},
+	{key: "nl_NL", label: 'Dutch'},
+	{key: "bg_BG", label: ''},
+	{key: "cs_CZ", label: 'Czech'},
+	{key: "da_DK", label: 'Danish'},
+	{key: "el_GR", label: 'Greek'},
+	{key: "fi_FI", label: 'Finnish'},
+	{key: "hu_HU", label: 'Hungaruan'},
+	{key: "id_ID", label: 'Indonesian'},
+	{key: "nb_NO", label: 'Norwegian'},
+	{key: "pl_PL", label: 'Polish'},
+	{key: "sk_SK", label: 'Slovak'},
+	{key: "sv_SE", label: 'Swedish'},
+	{key: "tr_TR", label: 'Turkish'},
+	{key: "uk_UA", label: 'Ukrainian'}
 ];
 export {lang_names};
 
@@ -56,9 +56,9 @@ export class LangFile {
 		if (!needs_changing) return this;
 
 		let i = 1;
-		let id = lang_names[0];
+		let id = lang_names[0]?.key;
 		while (LangFile.all.find(lf => lf != this && lf.id == id) && i < 2000) {
-			id = lang_names[i] || 'end';
+			id = lang_names[i]?.key || 'end';
 			i++;
 			console.log(id)
 		}

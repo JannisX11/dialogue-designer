@@ -79,30 +79,38 @@
 		<rawtext-exitor ref="editor_popup"></rawtext-exitor>
 	</div>
 
-	<div id="properties">
-		<h3>Commands</h3>
-		<div id="command_tab_bar">
-			<div class="command_tab" @click="switchCommandTab('on_open')" :class="{open: command_tab == 'on_open'}">On Open</div>
-			<div class="command_tab" @click="switchCommandTab('on_close')" :class="{open: command_tab == 'on_close'}">On Close</div>
-			<div class="command_tab" @click="switchCommandTab('button1')" :class="{open: command_tab == 'button1'}" v-if="scene.buttons[0]">Button 1</div>
-			<div class="command_tab" @click="switchCommandTab('button2')" :class="{open: command_tab == 'button2'}" v-if="scene.buttons[1]">Button 2</div>
-			<div class="command_tab" @click="switchCommandTab('button3')" :class="{open: command_tab == 'button3'}" v-if="scene.buttons[2]">Button 3</div>
-			<div class="command_tab" @click="switchCommandTab('button4')" :class="{open: command_tab == 'button4'}" v-if="scene.buttons[3]">Button 4</div>
-			<div class="command_tab" @click="switchCommandTab('button5')" :class="{open: command_tab == 'button5'}" v-if="scene.buttons[4]">Button 5</div>
-			<div class="command_tab" @click="switchCommandTab('button6')" :class="{open: command_tab == 'button6'}" v-if="scene.buttons[5]">Button 6</div>
-		</div>
-		
-		<textarea
-			v-model="command_value"
-			placeholder="/say hello world!"
-			@input="changeCommand($event)"
-		/>
+	<div id="properties" :class="{open: show_properties}">
+		<h3>
+			Commands
+			<div class="properties_toggle" @click="show_properties = !show_properties">
+				<ChevronDown :size="22" v-if="show_properties" />
+				<ChevronUp :size="22" v-else />
+			</div>
+		</h3>
+		<template v-if="show_properties">
+			<div id="command_tab_bar">
+				<div class="command_tab" @click="switchCommandTab('on_open')" :class="{open: command_tab == 'on_open'}">On Open</div>
+				<div class="command_tab" @click="switchCommandTab('on_close')" :class="{open: command_tab == 'on_close'}">On Close</div>
+				<div class="command_tab" @click="switchCommandTab('button1')" :class="{open: command_tab == 'button1'}" v-if="scene.buttons[0]">Button 1</div>
+				<div class="command_tab" @click="switchCommandTab('button2')" :class="{open: command_tab == 'button2'}" v-if="scene.buttons[1]">Button 2</div>
+				<div class="command_tab" @click="switchCommandTab('button3')" :class="{open: command_tab == 'button3'}" v-if="scene.buttons[2]">Button 3</div>
+				<div class="command_tab" @click="switchCommandTab('button4')" :class="{open: command_tab == 'button4'}" v-if="scene.buttons[3]">Button 4</div>
+				<div class="command_tab" @click="switchCommandTab('button5')" :class="{open: command_tab == 'button5'}" v-if="scene.buttons[4]">Button 5</div>
+				<div class="command_tab" @click="switchCommandTab('button6')" :class="{open: command_tab == 'button6'}" v-if="scene.buttons[5]">Button 6</div>
+			</div>
+			
+			<textarea
+				v-model="command_value"
+				placeholder="/say hello world!"
+				@input="changeCommand($event)"
+			/>
+		</template>
 	</div>
 </template>
 
 <script>
 import { vDraggable  } from 'vue-draggable-plus'
-import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical, Trash } from 'lucide-vue-next'
+import { ToggleLeft, ToggleRight, User, Plus, Baseline, Globe, Braces, X, GripVertical, Trash, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import MinecraftFormattingPreview from './minecraft_formatting_preview.vue'
 import RawtextExitor from './RawtextExitor.vue'
 import { Scene } from './../scripts/scene'
@@ -134,7 +142,9 @@ export default {
 		Braces,
 		X,
 		GripVertical,
-		Trash
+		Trash,
+		ChevronDown,
+		ChevronUp
 	},
 	props: {
 		scene: Scene,
@@ -164,6 +174,7 @@ export default {
 			],
 			codemirror_extensions: [oneDark, json(), lineNumbers()],
 			preview_mode: true,
+			show_properties: window.innerHeight > 680,
 			selected_input: '',
 			command_tab: 'on_open',
 			command_value: '',
@@ -337,6 +348,7 @@ export default {
 #scene_editor {
 	position: relative;
 	flex-grow: 1;
+	overflow-y: auto;
 }
 #editor_bar_top {
 	display: flex;
@@ -523,13 +535,25 @@ input[type=text] {
 }
 
 #properties {
-	min-height: 210px;
 	border-top: 1px solid var(--color-border);
 	display: flex;
     flex-direction: column;
+	position: relative;
+}
+#properties.open {
+	min-height: 210px;
 }
 #properties h3 {
     padding: 2px 12px;
+}
+.properties_toggle {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+    height: 30px;
+    width: 34px;
+    padding: 4px;
+    text-align: center;
 }
 #properties .ͼ1 {
 	border: 1px solid red;
@@ -538,6 +562,7 @@ input[type=text] {
 #command_tab_bar {
 	display: flex;
 	height: 32px;
+	overflow-x: auto;
 }
 .command_tab {
 	padding: 4px 12px;

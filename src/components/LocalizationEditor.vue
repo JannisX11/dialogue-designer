@@ -2,6 +2,7 @@
 	<div id="localization_editor">
 		<div id="properties_bar" v-if="language">
 			<input id="lang_title" v-model="language.id" list="lang_id_list" />
+			<label class="lang_name_full">{{ getFullLangName(language.id) }}</label>
 		</div>
 		<div ref="editor_anchor" class="loc_editor_anchor" :class="{has_content: language.content.length > 0}"></div>
 	</div>
@@ -56,6 +57,14 @@ export default {
 				]
 			});
 			this.editor.setState(editor_state);
+		},
+		getFullLangName(key: string): string {
+			let match = lang_names.find(item => item.key == key);
+			if (match) {
+				return match.label;
+			} else {
+				return ''
+			}
 		}
 	},
 	mounted() {
@@ -77,6 +86,10 @@ export default {
 	height: 100%;
 	width: 140px;
 	padding: 4px 12px;
+}
+label.lang_name_full {
+    color: var(--color-subtle);
+    font-weight: 200;
 }
 #localization_editor {
 	height: 100%;
