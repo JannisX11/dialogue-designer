@@ -342,6 +342,13 @@ export default {
 }
 #start_page > * {
 	flex: 0 1 300px;
+	padding: 10px;
+}
+#start_page > img {
+	max-width: 100%;
+}
+#start_page > div {
+	margin-bottom: 63px;
 }
 #start_page h1 {
 	padding-left: 0;
@@ -381,6 +388,11 @@ h1 {
 	font-size: 22px;
 	padding: 0 18px;
 	color: var(--color-subtle);
+	overflow: hidden;
+	flex-shrink: 1;
+}
+header .tool {
+	min-width: 90px;
 }
 #sidebar {
 	grid-area: sidebar;
@@ -403,6 +415,11 @@ nav#mobile_nav {
 	#start_page {
 		flex-direction: column;
 		text-align: center;
+		gap: 5px;
+	}
+	header {
+		gap: 4px;;
+		max-width: 100vw;
 	}
 	#wrapper {
 		height: 100%;
@@ -430,6 +447,11 @@ nav#mobile_nav {
 	}
 	nav#mobile_nav {
 		display: flex;
+	}
+	nav#mobile_nav > div {
+		flex-grow: 1;
+		text-align: center;
+		padding-top: 8px;
 	}
 }
 
