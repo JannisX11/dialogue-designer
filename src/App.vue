@@ -12,7 +12,7 @@ import ExportDialog from './components/ExportDialog.vue'
 			<p>Create interactive NPC dialogues for Minecraft: Bedrock Edition!</p>
 			<button @click="newFile()">New Dialogue</button>
 			<button @click="importFile()">Open File</button>
-			<p>Documentation: <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialogue?view=minecraft-bedrock-stable#creating-npc-dialogue" target="_blank" rel="noopener">Learning Portal</a></p>
+			<p>Documentation: <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/npcdialoguedesigner" target="_blank" rel="noopener">Learning Portal</a></p>
 		</div>
 		<p class="credit_info">
 			Created by <a href="https://github.com/JannisX11" target="_blank" rel="noopener">JannisX11</a> in collaboration with <a href="https://mojang.com" target="_blank" rel="noopener">Mojang Studios</a> -
