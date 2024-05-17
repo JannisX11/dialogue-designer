@@ -3,6 +3,8 @@ import { Project } from "./project";
 import { DialogueButton, Scene } from "./scene";
 import { IO } from "./util";
 
+export let OnImport: {[id: string]: ((file_name: string, content: any) => void)} = {
+}
 
 document.ondragover = function(event) {
 	event.preventDefault()
@@ -10,25 +12,23 @@ document.ondragover = function(event) {
 document.body.ondrop = function(event) {
 	let file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
 	if (file) {
-		if (file.name.endsWith('json')) {
+		let file_name = file?.name || '';
+		if (file_name.endsWith('json') || file_name.endsWith('lang')) {
 			let reader = new FileReader()
 			reader.onloadend = function() {
-				if (typeof reader.result == 'string') {
+				if (typeof reader.result != 'string') return;
+
+				if (file?.name.endsWith('json')) {
 					let json = JSON.parse(reader.result);
-					importDialogueFile(json, file ? file.name : '');
+					importDialogueFile(json, file_name);
+					if (OnImport.dialogue instanceof Function) OnImport.dialogue(file_name, reader.result);
+				} else {
+					loadLangFile({name: file_name, content: reader.result});
+					if (OnImport.lang instanceof Function) OnImport.lang(file_name, reader.result);
 				}
 			}
 			reader.readAsText(file)
 			event.preventDefault()
-		} else if (file.name.endsWith('lang')) {
-			let reader = new FileReader()
-			reader.onloadend = function() {
-				if (typeof reader.result == 'string') {
-					loadLangFile({name: file ? file.name : '', content: reader.result});
-				}
-			}
-			reader.readAsText(file);
-			event.preventDefault();
 		}
 	}
 }
@@ -144,13 +144,10 @@ export function importDialogueFile(json: object, file_name: string): void {
 		i++;
 	}
 	for (let {button, commands} of navigation_list) {
-		console.log(button, commands)
 		let nav_command_index = commands.findIndex(command => command.startsWith('/dialogue open @s @initiator '));
-		console.log(nav_command_index, commands[nav_command_index])
 		if (nav_command_index != -1) {
 			let target_scene_id = commands[nav_command_index].replace('/dialogue open @s @initiator ', '');
 			let target_scene = Scene.all.find(s => s.getSceneTag() == target_scene_id);
-			console.log(target_scene)
 			if (target_scene) {
 				button.navigate_to = target_scene.uuid;
 				commands.splice(nav_command_index, 1);

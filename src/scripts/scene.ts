@@ -84,7 +84,6 @@ export class Scene {
 		let un_numbered_id = this.id.replace(/_\d+$/, '');
 		let i = 2;
 		while (Scene.all.find(s => (s.id == this.id && s.uuid != this.uuid)) && i < 200) {
-			console.log(Scene.all.find(s => (s.id == this.id && s.uuid != this.uuid)))
 			this.id = un_numbered_id + '_' + i;
 			i++;
 		}

@@ -136,7 +136,7 @@ import { Scene } from './scripts/scene';
 import { Project } from './scripts/project'
 import { Plus, Copy, Trash, MessageSquare, Save, FolderOpen, FilePenLine, FilePlus, List, MessageSquareCode } from 'lucide-vue-next'
 import {nextTick, reactive} from 'vue'
-import { selectFileToImport, resetProject } from './scripts/import'
+import { selectFileToImport, resetProject, OnImport } from './scripts/import'
 import { exportDialogueFile } from './scripts/export'
 import { importLangFile, LangFile } from './scripts/lang_file';
 import { addKeybinding } from './scripts/keybindings'
@@ -180,11 +180,14 @@ export default {
 			if (this.saved == false && this.scenes.length && !window.confirm('Are you sure you want to load another file? You will lose all unsaved changes.')) return;
 			this.resetProject();
 			selectFileToImport().then(() => {
-				this.page = 'editor';
-				if (Scene.all.find(scene => scene.hasTranslations())) {
-					this.$refs.autoload_lang_dialog.showModal();
-				}
+				this.afterFileImported();
 			})
+		},
+		afterFileImported() {
+			this.page = 'editor';
+			if (Scene.all.find(scene => scene.hasTranslations())) {
+				this.$refs.autoload_lang_dialog.showModal();
+			}
 		},
 		resetProject() {
 			resetProject();
@@ -291,12 +294,15 @@ export default {
 	mounted() {
 		let vue_scope = this;
 		Scene.prototype.select = function() {
-			console.log(this)
 			vue_scope.selectScene(this);
 		}
 		addKeybinding('s', {ctrl: true}, () => {
 			this.openExportDialog();
 		})
+
+		OnImport.dialogue = () => {
+			this.afterFileImported();
+		}
 
 		window.onbeforeunload = (e) => {
 			if (this.scenes.length && !this.saved) {

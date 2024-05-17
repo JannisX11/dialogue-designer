@@ -32,7 +32,7 @@ export default {
 		let color = '';
 		let is_ascii = isAllASCII(this.text);
 
-		this.text.replace(/\t#$/, '').split(/\r?\n|%1/).forEach((line, line_i) => {
+		this.text.replace(/\t#$/, '').split(/\r?\n/).forEach((line, line_i) => {
 			if (line_i) {
 				let br = h('br');
 				list.push(br);

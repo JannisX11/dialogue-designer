@@ -60,7 +60,6 @@ export class LangFile {
 		while (LangFile.all.find(lf => lf != this && lf.id == id) && i < 2000) {
 			id = lang_names[i]?.key || 'end';
 			i++;
-			console.log(id)
 		}
 		this.id = id;
 		return this;

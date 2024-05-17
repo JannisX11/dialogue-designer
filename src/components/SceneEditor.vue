@@ -31,6 +31,7 @@
 					<select :value="scene.text.mode" @change="scene.text.switchMode($event.target.value); $event.target.value == 'json' && editInPopup('text')">
 						<option value="text">Text</option>
 						<option value="translate">Translate</option>
+						<option value="translate_with_linebreaks">Translate with Linebreaks</option>
 						<option value="json">Raw JSON</option>
 					</select>
 				</div>
@@ -157,7 +158,6 @@ export default {
 				autocompletion({
 					override: [function(context) {
 						let word = context.matchBefore(/\w*/)
-						console.log(word, context)
 						/*if (word.from == word.to && !context.explicit)
 							return null*/
 						return {
@@ -273,7 +273,6 @@ export default {
 			}
 		},
 		updateLang() {
-			//console.log(this)
 			//this.$forceUpdate()
 		}
 	}
@@ -563,6 +562,7 @@ input[type=text] {
 	display: flex;
 	height: 32px;
 	overflow-x: auto;
+	flex-shrink: 0;
 }
 .command_tab {
 	padding: 4px 12px;
